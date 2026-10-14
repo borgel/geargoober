@@ -26,9 +26,13 @@ export function partProfile(p: Project, s: Solution, id: string, opts: PartOptio
     if (!shaft) return { ok: false, error: `${id}: unknown shaft ${gear.shaftId}` };
     const { loop } = spurOuterLoop({ m: s.module, z: gear.teeth, paRad: s.pa, backlash: fit.backlashMm, clearanceCoef: fit.clearanceCoef });
     const half = opts.kerf ? fit.kerfMm / 2 : 0;
+    const b = shaft.bore;
+    const left =
+      b.kind === 'round' ? b.dia / 2 - half : b.kind === 'dflat' ? b.dia / 2 - half - b.flatDepth / 2 : b.kind === 'hex' ? b.acrossFlats / 2 - half : b.side / 2 - half;
+    if (!(left > 0)) return { ok: false, error: `${id}: kerf ${fit.kerfMm} mm would close up the ${gear.shaftId} bore` };
     const off = offsetLoop(opts.zeroPhase ? loop : transformLoop(loop, gs.phase, 0, 0), half);
     if (!off.ok) return { ok: false, error: `${id}: ${off.error}` };
-    const hole = boreLoop(shaft.bore, { relief: fit.cornerReliefMm, shrink: half });
+    const hole = boreLoop(b, { relief: fit.cornerReliefMm, shrink: half });
     return { ok: true, kind: 'gear', profile: { outer: off.loop, holes: [hole] } };
   }
   const rack = p.racks.find((r) => r.id === id);

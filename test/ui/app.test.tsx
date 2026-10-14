@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
+import { parseGear } from '../../src/core/format/gearText';
 import { App } from '../../src/ui/App';
 
 const SMALL = `project "UI test"
@@ -89,5 +90,51 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Export…' }));
     expect(screen.getByRole('dialog').textContent).toMatch(/Fix the errors/);
     expect(screen.queryByRole('button', { name: 'Download all (.zip)' })).toBeNull();
+  });
+
+  it('never autosaves a project that would not load again', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.input(screen.getByLabelText('G1 face width'), { target: { value: '' } });
+    const saved = localStorage.getItem('geargoober.project')!;
+    expect(parseGear(saved).ok).toBe(true);
+    expect(saved).toContain('width 6');
+  });
+
+  it('keeps unreadable saved text instead of overwriting it', () => {
+    localStorage.setItem('geargoober.project', 'gear G1 on S1 teeth NaN width 5\n');
+    render(<App />);
+    expect(localStorage.getItem('geargoober.project.unreadable')).toContain('teeth NaN');
+    expect(screen.getByRole('status').textContent).toMatch(/couldn.t be read/i);
+  });
+
+  it('reverts an invalid id instead of renaming', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    const id = screen.getByLabelText('Gear G1 id') as HTMLInputElement;
+    fireEvent.input(id, { target: { value: 'my gear' } });
+    fireEvent.blur(id);
+    expect(id.value).toBe('G1');
+    fireEvent.input(id, { target: { value: 'G2' } });
+    fireEvent.blur(id);
+    expect(id.value).toBe('G1');
+    expect(parseGear(localStorage.getItem('geargoober.project')!).ok).toBe(true);
+  });
+
+  it('refreshes the text editor when another project is loaded', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }));
+    fireEvent.click(screen.getByRole('button', { name: 'Load example' }));
+    expect((screen.getByLabelText('Project text') as HTMLTextAreaElement).value).toContain('two-stage');
+  });
+
+  it('keeps a text edit made just before switching back to parts', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Text' }));
+    fireEvent.input(screen.getByLabelText('Project text'), { target: { value: SMALL.replace('teeth 40', 'teeth 80') } });
+    fireEvent.click(screen.getByRole('button', { name: 'Parts' }));
+    expect(screen.getByTestId('results').textContent).toContain('-250');
   });
 });

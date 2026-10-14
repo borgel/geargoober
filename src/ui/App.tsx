@@ -17,7 +17,7 @@ export function App() {
   const store = useProjectStore();
   const { project } = store;
   const [mode, setMode] = useState<'list' | 'text'>('list');
-  const [notice, setNotice] = useState<string>('');
+  const [notice, setNotice] = useState<string>(store.startupNotice);
   const [exporting, setExporting] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const base = safeFileName(project.name);

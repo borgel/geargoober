@@ -30,19 +30,21 @@ export function NumField(props: { value: number; onChange: (n: number) => void; 
 }
 
 /** Text that commits on blur or Enter (ids, so renames don't cascade on every keystroke). */
-export function CommitField(props: { value: string; onCommit: (s: string) => void; label: string; class?: string }) {
+export function CommitField(props: { value: string; onCommit: (s: string) => void; label: string; class?: string; title?: string }) {
   const [text, setText] = useState(props.value);
   useEffect(() => setText(props.value), [props.value]);
   const commit = () => {
     const t = text.trim();
+    // the owner may refuse (invalid or taken id); show the current value until it changes
+    setText(props.value);
     if (t && t !== props.value) props.onCommit(t);
-    else setText(props.value);
   };
   return (
     <input
       type="text"
       class={props.class}
       aria-label={props.label}
+      title={props.title}
       value={text}
       onInput={(e) => setText((e.target as HTMLInputElement).value)}
       onBlur={commit}

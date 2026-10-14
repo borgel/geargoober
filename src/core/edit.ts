@@ -45,7 +45,14 @@ export function addMesh(p: Project): Project {
   return q;
 }
 
+/** Ids are single tokens in the .gear format and part of exported file and parameter names. */
+export const ID_PATTERN = /^[A-Za-z0-9_.-]+$/;
+export const isValidId = (id: string): boolean => ID_PATTERN.test(id);
+
+/** Renames a part and every reference to it. Invalid or already-used targets leave the project unchanged. */
 export function renameId(p: Project, from: string, to: string): Project {
+  const taken = [...p.shafts, ...p.gears, ...p.racks].some((x) => x.id === to);
+  if (!isValidId(to) || taken) return p;
   const q = clone(p);
   const swap = (x: string) => (x === from ? to : x);
   for (const list of [q.shafts, q.gears, q.racks]) {

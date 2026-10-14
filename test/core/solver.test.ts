@@ -289,9 +289,10 @@ describe('solve: warnings', () => {
 
   it('warns about pointed teeth on very small gears', () => {
     // standard 20° teeth stay blunt down to very low counts; heavy backlash thins them to a point
-    const s = solveText('fit backlash 1.0\n' + PAIR.replace('teeth 20', 'teeth 5'));
+    const tiny = PAIR.replace('shaft S1 bore round 5', 'shaft S1 bore round 1').replace('teeth 20', 'teeth 5');
+    const s = solveText('fit backlash 1.0\n' + tiny);
     expect(has(s, /pointed/i, 'G1')).toBe(true);
-    expect(has(solveText(PAIR.replace('teeth 20', 'teeth 5')), /pointed/i, 'G1')).toBe(false);
+    expect(has(solveText(tiny), /pointed/i, 'G1')).toBe(false);
     expect(has(solveText(PAIR), /pointed/i, 'G1')).toBe(false);
   });
 
@@ -352,7 +353,7 @@ mesh G2 R1 angle 270 offset 100
   });
 
   it('warns about low contact ratio', () => {
-    const s = solveText(PAIR.replace('teeth 20', 'teeth 5').replace('teeth 40', 'teeth 5'));
+    const s = solveText(PAIR.replace(/bore round 5/g, 'bore round 1').replace('teeth 20', 'teeth 5').replace('teeth 40', 'teeth 5'));
     expect(s.meshes[0].contactRatio).toBeLessThan(1.2);
     expect(has(s, /contact ratio/i, 'G1')).toBe(true);
   });

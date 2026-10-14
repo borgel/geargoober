@@ -99,8 +99,20 @@ function boreProblem(b: Bore): string | undefined {
       return isPos(b.acrossFlats) ? undefined : 'hex across-flats must be > 0';
     case 'square':
       return isPos(b.side) ? undefined : 'square side must be > 0';
+    default:
+      return `unknown bore kind "${(b as { kind?: unknown }).kind}"`;
   }
 }
+
+/** Largest corner relief radius a polygonal bore can take (its inradius). */
+function reliefLimit(b: Bore): number | undefined {
+  if (b.kind === 'hex') return b.acrossFlats / 2;
+  if (b.kind === 'square') return b.side / 2;
+  return undefined;
+}
+
+const MAX_GEAR_TEETH = 1000;
+const MAX_RACK_TEETH = 2000;
 
 export function solve(p: Project): Solution {
   const issues: Issue[] = [];
@@ -133,15 +145,23 @@ export function solve(p: Project): Solution {
   for (const s of p.shafts) {
     const problem = boreProblem(s.bore);
     if (problem) err(`${s.id}: ${problem}`, s.id);
+    else {
+      const limit = reliefLimit(s.bore);
+      if (limit !== undefined && p.fit.cornerReliefMm >= limit) {
+        err(`${s.id}: corner relief ${p.fit.cornerReliefMm} mm is too large for this bore (must be under ${limit} mm)`, s.id);
+      }
+    }
   }
   for (const g of p.gears) {
     if (!shaftById.has(g.shaftId)) err(`${g.id}: unknown shaft "${g.shaftId}"`, g.id, g.shaftId);
     if (!Number.isInteger(g.teeth) || g.teeth < 4) err(`${g.id}: teeth must be a whole number ≥ 4`, g.id);
+    else if (g.teeth > MAX_GEAR_TEETH) err(`${g.id}: ${g.teeth} teeth is more than the ${MAX_GEAR_TEETH} supported`, g.id);
     if (!isPos(g.faceWidth)) err(`${g.id}: face width must be > 0`, g.id);
     if (!Number.isFinite(g.zOffset)) err(`${g.id}: z offset must be a number`, g.id);
   }
   for (const r of p.racks) {
     if (!Number.isInteger(r.teeth) || r.teeth < 1) err(`${r.id}: teeth must be a whole number ≥ 1`, r.id);
+    else if (r.teeth > MAX_RACK_TEETH) err(`${r.id}: ${r.teeth} teeth is more than the ${MAX_RACK_TEETH} supported`, r.id);
     if (!isPos(r.faceWidth)) err(`${r.id}: face width must be > 0`, r.id);
     if (!isPos(r.backHeight)) err(`${r.id}: back height must be > 0`, r.id);
   }
@@ -187,6 +207,16 @@ export function solve(p: Project): Solution {
     x0: (-(r.teeth - 1) / 2) * pitch,
   }));
   const meshes: MeshSol[] = [];
+  if (isPos(m)) {
+    for (const g of p.gears) {
+      const shaft = shaftById.get(g.shaftId);
+      if (!shaft || boreProblem(shaft.bore)) continue;
+      const rootR = radii(tp(g.teeth)).rootR;
+      if (boreRadius(shaft.bore) >= rootR) {
+        err(`${g.id}: bore on ${g.shaftId} reaches past the gear's root circle (Ø${(rootR * 2).toFixed(2)} mm)`, g.id, g.shaftId);
+      }
+    }
+  }
   const fail = (): Solution => ({ ok: false, laidOut: false, module: m, pa, shafts, gears, racks, meshes, issues });
   if (issues.some((i) => i.severity === 'error')) return fail();
 
@@ -295,6 +325,9 @@ export function solve(p: Project): Solution {
       rs.angle = normAngle(beta + Math.PI / 2);
       placedRacks.add(rack.id);
       meshes[meshIdx].contactX = contactX;
+      if (mesh.offset) {
+        warn(`mesh ${x.id}–${rack.id}: offset ignored; rack ${rack.id} is positioned from ${x.id}, which sits at the rack's middle`, x.id, rack.id);
+      }
       queue.push({ kind: 'rack', id: rack.id });
       return;
     }
@@ -303,6 +336,9 @@ export function solve(p: Project): Solution {
     const u = rackU(rs);
     const contactX = dot(sub(xPos, rs.origin), t);
     meshes[meshIdx].contactX = contactX;
+    if (mesh.offset !== undefined && Math.abs(mesh.offset - contactX) > POS_TOL) {
+      warn(`mesh ${x.id}–${rack.id}: offset ${mesh.offset} ignored; ${x.id} is already placed at ${fmt(contactX)} along the rack`, x.id, rack.id);
+    }
     const expected = sub(add(rs.origin, scale(t, contactX)), scale(u, xs.pitchR));
     if (dist(expected, xPos) > POS_TOL) {
       err(`position conflict: ${x.id} is not at pitch distance from rack ${rack.id}`, x.id, rack.id, x.shaftId);
@@ -346,39 +382,49 @@ export function solve(p: Project): Solution {
     }
   };
 
-  const extentMaxX = (): number => {
-    let maxX = -Infinity;
-    for (const id of placedShafts) {
-      const s = shaftSol.get(id)!;
-      const r = Math.max(0, ...gearsOnShaft.get(id)!.map((g) => gearSol.get(g.id)!.outerR));
-      maxX = Math.max(maxX, s.x + r);
-    }
-    for (const id of placedRacks) {
-      const r = rackSol.get(id)!;
-      const t = rackT(r);
-      maxX = Math.max(maxX, r.origin.x + Math.abs(t.x) * (r.length / 2));
-    }
-    return maxX;
-  };
-
   const gap = 10 * m;
+  const extentOf = (ids: Set<string>) => {
+    let minX = Infinity;
+    let maxX = -Infinity;
+    for (const id of ids) {
+      const sh = shaftSol.get(id);
+      if (sh) {
+        const r = Math.max(0, ...gearsOnShaft.get(id)!.map((g) => gearSol.get(g.id)!.outerR));
+        minX = Math.min(minX, sh.x - r);
+        maxX = Math.max(maxX, sh.x + r);
+        continue;
+      }
+      const rs = rackSol.get(id)!;
+      const half = Math.abs(rackT(rs).x) * (rs.length / 2) + 2.25 * m;
+      minX = Math.min(minX, rs.origin.x - half);
+      maxX = Math.max(maxX, rs.origin.x + half);
+    }
+    return { minX, maxX };
+  };
   let firstRoot: string | undefined;
   for (const root of p.shafts) {
     if (placedShafts.has(root.id)) continue;
     const before = new Set([...placedShafts, ...placedRacks]);
-    const rootR = Math.max(0, ...gearsOnShaft.get(root.id)!.map((g) => gearSol.get(g.id)!.outerR));
-    placeShaft(root.id, firstRoot === undefined ? { x: 0, y: 0 } : { x: extentMaxX() + gap + rootR, y: 0 });
+    placeShaft(root.id, { x: 0, y: 0 });
     const queue: Node[] = [{ kind: 'shaft', id: root.id }];
     while (queue.length) visit(queue.shift()!, queue);
-    if (firstRoot === undefined) firstRoot = root.id;
-    else {
-      const component = [...placedShafts, ...placedRacks].filter((id) => !before.has(id));
-      warn(`${component.join(', ')}: not connected to ${firstRoot}; placed beside the main train`, ...component);
+    if (firstRoot === undefined) {
+      firstRoot = root.id;
+      continue;
     }
+    // lay the whole component out on its own, then slide it clear of everything placed before
+    const component = [...placedShafts, ...placedRacks].filter((id) => !before.has(id));
+    const dx = extentOf(before).maxX + gap - extentOf(new Set(component)).minX;
+    for (const id of component) {
+      const sh = shaftSol.get(id);
+      if (sh) sh.x += dx;
+      else rackSol.get(id)!.origin.x += dx;
+    }
+    warn(`${component.join(', ')}: not connected to ${firstRoot}; placed beside the main train`, ...component);
   }
   for (const r of racks) {
     if (placedRacks.has(r.id)) continue;
-    const x = (placedShafts.size || placedRacks.size ? extentMaxX() + gap : 0) + r.length / 2;
+    const x = (placedShafts.size || placedRacks.size ? extentOf(new Set([...placedShafts, ...placedRacks])).maxX + gap : 0) + r.length / 2;
     r.origin = { x, y: 0 };
     placedRacks.add(r.id);
     if (firstRoot !== undefined) warn(`${r.id}: not connected to ${firstRoot}; placed beside the main train`, r.id);
@@ -472,7 +518,8 @@ export function solve(p: Project): Solution {
     if (g.teeth < limit) warn(`${g.id}: ${g.teeth} teeth is below ${limit}; undercut likely at ${p.pressureAngleDeg}°`, g.id);
     if (toothTipHalfAngle(tp(g.teeth)) <= 0) warn(`${g.id}: teeth are pointed (they narrow to a point below the tip circle)`, g.id);
     const bore = shaftById.get(g.shaftId)!.bore;
-    if (gs.rootR - boreRadius(bore) < m) warn(`${g.id}: bore leaves less than one module of material below the teeth`, g.id, g.shaftId);
+    const rim = gs.rootR - boreRadius(bore);
+    if (rim > 0 && rim < m) warn(`${g.id}: bore leaves less than one module of material below the teeth`, g.id, g.shaftId);
   }
   const meshed = new Set(p.meshes.map((x) => [x.a, x.b].sort().join('|')));
   const zOverlap = (a: Gear, b: Gear) => Math.min(a.zOffset + a.faceWidth, b.zOffset + b.faceWidth) - Math.max(a.zOffset, b.zOffset);

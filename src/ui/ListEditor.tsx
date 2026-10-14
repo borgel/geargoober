@@ -3,6 +3,8 @@ import type { Bore, Project } from '../core/model';
 import { CommitField, NumField, Select } from './fields';
 import type { Store } from './state';
 
+const ID_HINT = 'Ids are unique and use letters, digits, _ . or -';
+
 const BORE_KINDS: { value: Bore['kind']; label: string }[] = [
   { value: 'round', label: 'Round' },
   { value: 'dflat', label: 'D-flat' },
@@ -79,7 +81,7 @@ export function ListEditor({ store }: { store: Store }) {
               {p.shafts.map((s, i) => (
                 <tr class={sel(s.id)} key={s.id}>
                   <td>
-                    <CommitField class="id" label={`Shaft ${s.id} id`} value={s.id} onCommit={rename(s.id)} />
+                    <CommitField class="id" title={ID_HINT} label={`Shaft ${s.id} id`} value={s.id} onCommit={rename(s.id)} />
                   </td>
                   <td>
                     <Select
@@ -147,7 +149,7 @@ export function ListEditor({ store }: { store: Store }) {
               {p.gears.map((g, i) => (
                 <tr class={sel(g.id)} key={g.id}>
                   <td>
-                    <CommitField class="id" label={`Gear ${g.id} id`} value={g.id} onCommit={rename(g.id)} />
+                    <CommitField class="id" title={ID_HINT} label={`Gear ${g.id} id`} value={g.id} onCommit={rename(g.id)} />
                   </td>
                   <td>
                     <Select label={`${g.id} shaft`} value={g.shaftId} options={shaftOptions} onChange={(v) => edit((q) => (q.gears[i].shaftId = v))} />
@@ -188,7 +190,7 @@ export function ListEditor({ store }: { store: Store }) {
               {p.racks.map((r, i) => (
                 <tr class={sel(r.id)} key={r.id}>
                   <td>
-                    <CommitField class="id" label={`Rack ${r.id} id`} value={r.id} onCommit={rename(r.id)} />
+                    <CommitField class="id" title={ID_HINT} label={`Rack ${r.id} id`} value={r.id} onCommit={rename(r.id)} />
                   </td>
                   <td>
                     <NumField label={`${r.id} teeth`} value={r.teeth} onChange={(n) => edit((q) => (q.racks[i].teeth = n))} />

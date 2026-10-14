@@ -11,17 +11,25 @@ export function exampleProject(): Project {
   return r.ok ? r.project : newProject();
 }
 
-function loadInitial(): Project {
+export const BACKUP_KEY = 'geargoober.project.unreadable';
+
+function loadInitial(): { project: Project; notice: string } {
   try {
     const text = localStorage.getItem(STORAGE_KEY);
     if (text) {
       const r = parseGear(text);
-      if (r.ok) return r.project;
+      if (r.ok) return { project: r.project, notice: '' };
+      // keep the unreadable text so autosave can't destroy it
+      localStorage.setItem(BACKUP_KEY, text);
+      return {
+        project: exampleProject(),
+        notice: `Your saved project couldn't be read (line ${r.errors[0].line}: ${r.errors[0].message}). It's kept in browser storage under "${BACKUP_KEY}"; showing the example instead.`,
+      };
     }
   } catch {
     // storage unavailable (private mode, file:// restrictions): fall through to the example
   }
-  return exampleProject();
+  return { project: exampleProject(), notice: '' };
 }
 
 export interface Store {
@@ -29,21 +37,26 @@ export interface Store {
   setProject: (p: Project) => void;
   update: (fn: (p: Project) => Project) => void;
   solution: ReturnType<typeof solve>;
+  /** Message about how the saved project was restored, if anything went wrong. */
+  startupNotice: string;
   selection: string[];
   select: (ids: string[]) => void;
 }
 
 export function useProjectStore(): Store {
-  const [project, setProject] = useState<Project>(loadInitial);
+  const [initial] = useState(loadInitial);
+  const [project, setProject] = useState<Project>(initial.project);
   const [selection, select] = useState<string[]>([]);
   const solution = useMemo(() => solve(project), [project]);
   useEffect(() => {
     try {
-      localStorage.setItem(STORAGE_KEY, serializeGear(project));
+      // Only autosave text that loads again; a half-typed field (blank → NaN) keeps the last good save.
+      const text = serializeGear(project);
+      if (parseGear(text).ok) localStorage.setItem(STORAGE_KEY, text);
     } catch {
       // ignore: autosave is best-effort
     }
   }, [project]);
   const update = useCallback((fn: (p: Project) => Project) => setProject((p) => fn(p)), []);
-  return { project, setProject, update, solution, selection, select };
+  return { project, setProject, update, solution, selection, select, startupNotice: initial.notice };
 }

@@ -102,6 +102,26 @@ export function specHtml(p: Project, s: Solution, version: string): string {
     ? `<ul>${s.issues.map((i) => `<li class="${i.severity}">${i.severity === 'error' ? '✖' : '⚠'} ${esc(i.message)}</li>`).join('')}</ul>`
     : '<p>None.</p>';
   const fit = p.fit;
+  // Outputs: driven shafts at the end of a chain (their gears take part in one mesh) and driven racks.
+  const meshCount = new Map<string, number>();
+  for (const m of p.meshes) for (const id of [m.a, m.b]) meshCount.set(id, (meshCount.get(id) ?? 0) + 1);
+  const inputId = p.input.kind === 'shaft' ? p.input.shaftId : p.input.rackId;
+  const rpmIn = p.input.kind === 'shaft' ? p.input.rpm : undefined;
+  const outputRows = [
+    ...s.shafts
+      .filter((sh) => sh.id !== inputId && sh.rpm !== undefined)
+      .filter((sh) => p.gears.filter((g) => g.shaftId === sh.id).reduce((n, g) => n + (meshCount.get(g.id) ?? 0), 0) === 1)
+      .map((sh) => {
+        const ratio = rpmIn && sh.rpm ? `${fmt(Math.abs(rpmIn / sh.rpm), 4)} : 1` : '—';
+        return `<tr><td>${esc(sh.id)}</td><td>${fmt(sh.rpm, 3)} rpm</td><td>${ratio}</td></tr>`;
+      }),
+    ...s.racks
+      .filter((r) => r.id !== inputId && r.mmPerSec !== undefined)
+      .map((r) => {
+        const perRev = rpmIn ? `${fmt(Math.abs((r.mmPerSec! * 60) / rpmIn), 4)} mm per input revolution` : '—';
+        return `<tr><td>${esc(r.id)}</td><td>${fmt(r.mmPerSec, 3)} mm/s</td><td>${perRev}</td></tr>`;
+      }),
+  ].join('');
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${esc(p.name)} — gear train spec</title>
 <style>
@@ -121,6 +141,7 @@ li.error{color:#a00}li.warning{color:#850}
 <tr><th>Pitch</th><td>${pitch}, pressure angle ${fmt(p.pressureAngleDeg)}°</td></tr>
 <tr><th>Fit</th><td>backlash ${fmt(fit.backlashMm)}, clearance ${fmt(fit.clearanceCoef)}·m, kerf ${fmt(fit.kerfMm)}, bore corner relief ${fmt(fit.cornerReliefMm)}</td></tr>
 </tbody></table>
+${outputRows ? `<h3>Outputs</h3><table><thead><tr><th>part</th><th>speed</th><th>overall ratio (input : output)</th></tr></thead><tbody>${outputRows}</tbody></table>` : ''}
 <h2>Layout</h2>
 ${layoutSvg(p, s)}
 <h2>Shafts</h2>

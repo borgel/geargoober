@@ -70,6 +70,8 @@ export interface MeshSol {
 
 export interface Solution {
   ok: boolean;
+  /** False when validation failed before positions were computed. */
+  laidOut: boolean;
   module: number;
   pa: number;
   shafts: ShaftSol[];
@@ -116,6 +118,13 @@ export function solve(p: Project): Solution {
   if (!(clearanceCoef >= 0 && clearanceCoef < 1)) err('clearance coefficient must be between 0 and 1');
   if (!(p.fit.kerfMm >= 0)) err('kerf must be ≥ 0');
   if (!(p.fit.cornerReliefMm >= 0)) err('corner relief must be ≥ 0');
+
+  const seen = new Set<string>();
+  for (const id of [...p.shafts, ...p.gears, ...p.racks].map((x) => x.id)) {
+    if (!id) err('every shaft, gear and rack needs an id');
+    else if (seen.has(id)) err(`duplicate id "${id}"`, id);
+    seen.add(id);
+  }
 
   const shaftById = new Map(p.shafts.map((s) => [s.id, s]));
   const gearById = new Map(p.gears.map((g) => [g.id, g]));
@@ -178,7 +187,7 @@ export function solve(p: Project): Solution {
     x0: (-(r.teeth - 1) / 2) * pitch,
   }));
   const meshes: MeshSol[] = [];
-  const fail = (): Solution => ({ ok: false, module: m, pa, shafts, gears, racks, meshes, issues });
+  const fail = (): Solution => ({ ok: false, laidOut: false, module: m, pa, shafts, gears, racks, meshes, issues });
   if (issues.some((i) => i.severity === 'error')) return fail();
 
   const gearSol = new Map(gears.map((g) => [g.id, g]));
@@ -498,5 +507,5 @@ export function solve(p: Project): Solution {
     }
   }
 
-  return { ok: !issues.some((i) => i.severity === 'error'), module: m, pa, shafts, gears, racks, meshes, issues };
+  return { ok: !issues.some((i) => i.severity === 'error'), laidOut: true, module: m, pa, shafts, gears, racks, meshes, issues };
 }

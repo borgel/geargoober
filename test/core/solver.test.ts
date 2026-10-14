@@ -236,6 +236,22 @@ describe('solve: validation', () => {
     }
   });
 
+  it('rejects duplicate ids created outside the parser', () => {
+    const p = project(PAIR);
+    p.gears.push({ ...p.gears[0] });
+    p.racks.push({ id: 'S1', name: 'S1', teeth: 10, faceWidth: 5, backHeight: 5 });
+    const s = solve(p);
+    expect(s.ok).toBe(false);
+    expect(errors(s).some((e) => /duplicate/i.test(e.message) && e.refs.includes('G1'))).toBe(true);
+    expect(errors(s).some((e) => /duplicate/i.test(e.message) && e.refs.includes('S1'))).toBe(true);
+  });
+
+  it('reports whether a layout was produced', () => {
+    expect(solveText(PAIR).laidOut).toBe(true);
+    expect(solveText(SQUARE(260)).laidOut).toBe(true); // conflict, but positions exist
+    expect(solveText(PAIR.replace('teeth 20', 'teeth 2')).laidOut).toBe(false);
+  });
+
   it('rejects a zero module', () => {
     const s = solveText('pitch module 0\n' + PAIR);
     expect(s.ok).toBe(false);

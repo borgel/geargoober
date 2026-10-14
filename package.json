@@ -1,0 +1,26 @@
+{
+  "name": "geargoober",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "test": "vitest run",
+    "build": "tsc --noEmit && vite build"
+  },
+  "devDependencies": {
+    "@preact/preset-vite": "^2.10.6",
+    "@testing-library/preact": "^3.2.4",
+    "@types/node": "^26.6.5",
+    "jsdom": "^30.1.2",
+    "occt-import-js": "^0.0.23",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.4",
+    "vite-plugin-singlefile": "^2.3.3",
+    "vitest": "^5.0.4"
+  },
+  "dependencies": {
+    "fflate": "^0.8.3",
+    "preact": "^11.0.1"
+  }
+}

@@ -1,0 +1,58 @@
+#!/usr/bin/env bash
+# GearGoober dev wrapper: runs all build tooling inside Docker.
+set -euo pipefail
+cd "$(dirname "$0")"
+
+IMAGE=geargoober-dev
+VOLUME=geargoober_node_modules
+
+usage() {
+  cat <<USAGE
+usage: ./gg <command> [args]
+  dev            start Vite dev server on http://localhost:5173
+  test [args]    run tests once (pass --watch to keep watching)
+  build          build dist/geargoober.html
+  shell          interactive shell in the container
+  npm <args>     run npm in the container (e.g. ./gg npm install foo)
+  run <cmd...>   run any command in the container
+USAGE
+}
+
+docker build -q -t "$IMAGE" . >/dev/null
+
+TTY_FLAGS=()
+[ -t 0 ] && [ -t 1 ] && TTY_FLAGS=(-it)
+
+dock() {
+  docker run --rm ${TTY_FLAGS[@]+"${TTY_FLAGS[@]}"} \
+    -e NPM_CONFIG_UPDATE_NOTIFIER=false -v "$PWD:/app" -v "$VOLUME:/app/node_modules" -w /app \
+    "$@"
+}
+
+# Install deps into the node_modules volume when the lockfile changes.
+ensure_deps() {
+  dock "$IMAGE" sh -c '
+    want=$(cat package-lock.json 2>/dev/null | sha256sum | cut -d" " -f1)
+    have=$(cat node_modules/.lockhash 2>/dev/null || true)
+    if [ "$want" != "$have" ] || [ ! -d node_modules/.bin ]; then
+      echo "gg: installing dependencies..." >&2
+      if [ -f package-lock.json ]; then npm ci --no-audit --no-fund >&2; else npm install --no-audit --no-fund >&2; fi
+      cat package-lock.json | sha256sum | cut -d" " -f1 > node_modules/.lockhash
+    fi'
+}
+
+cmd="${1:-}"; shift || true
+case "$cmd" in
+  dev)   ensure_deps; dock -p 5173:5173 "$IMAGE" npx vite --host 0.0.0.0 "$@" ;;
+  test)
+    ensure_deps
+    if [ "${1:-}" = "--watch" ]; then shift; dock "$IMAGE" npx vitest "$@"
+    else dock "$IMAGE" npx vitest run "$@"; fi ;;
+  build) ensure_deps; dock "$IMAGE" sh -c 'npx tsc --noEmit && npx vite build' ;;
+  shell) ensure_deps; dock "$IMAGE" bash ;;
+  npm)   dock "$IMAGE" npm "$@"
+         dock "$IMAGE" sh -c 'cat package-lock.json | sha256sum | cut -d" " -f1 > node_modules/.lockhash' ;;
+  run)   ensure_deps; dock "$IMAGE" "$@" ;;
+  ""|-h|--help|help) usage ;;
+  *) echo "gg: unknown command '$cmd'" >&2; usage; exit 1 ;;
+esac

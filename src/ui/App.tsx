@@ -5,6 +5,7 @@ import { fromJson, toJson } from '../core/format/json';
 import { newProject } from '../core/model';
 import { Diagram } from './Diagram';
 import { download, safeFileName } from './download';
+import { ExportDialog } from './ExportDialog';
 import { IssuesPanel } from './IssuesPanel';
 import { ListEditor } from './ListEditor';
 import { ProjectPanel } from './ProjectPanel';
@@ -17,6 +18,7 @@ export function App() {
   const { project } = store;
   const [mode, setMode] = useState<'list' | 'text'>('list');
   const [notice, setNotice] = useState<string>('');
+  const [exporting, setExporting] = useState(false);
   const fileInput = useRef<HTMLInputElement>(null);
   const base = safeFileName(project.name);
 
@@ -75,6 +77,9 @@ export function App() {
           <button type="button" onClick={() => download(`${base}.json`, toJson(project, store.solution), 'application/json')}>
             Save .json
           </button>
+          <button type="button" class="primary" onClick={() => setExporting(true)}>
+            Export…
+          </button>
         </nav>
       </header>
       {notice && (
@@ -110,6 +115,7 @@ export function App() {
         <IssuesPanel store={store} />
         <ResultsPanel store={store} />
       </section>
+      {exporting && <ExportDialog store={store} onClose={() => setExporting(false)} />}
     </div>
   );
 }

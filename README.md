@@ -15,14 +15,26 @@ everything you need to build it:
 - A printable **spec sheet** of what meshes with what, speeds, ratios, and
   spacing
 
-> **Status:** in design. See
-> [`docs/superpowers/specs/2026-10-14-geargoober-design.md`](docs/superpowers/specs/2026-10-14-geargoober-design.md).
+Design notes live in
+[`docs/superpowers/specs/2026-10-14-geargoober-design.md`](docs/superpowers/specs/2026-10-14-geargoober-design.md).
 
 ## Using it
 
-Open `geargoober.html` in any modern browser. That's it. Your work autosaves
-in the browser; use **Save** to keep a `.gear` file you can share or put in
-git.
+Build it once (see below) and open `dist/geargoober.html` in any modern
+browser — straight from disk, no server. Your work autosaves in the browser;
+use **Save .gear** to keep a file you can share or put in git.
+
+- **Parts** tab: set pitch (module or diametral pitch), pressure angle, the
+  input shaft or rack and its speed, then add shafts, gears, racks and meshes.
+  **Fit allowances** holds backlash, root clearance, cutter kerf and bore
+  corner radius.
+- **Text** tab: the same project as editable text (below).
+- The diagram is to scale on a millimetre grid. Blue-grey parts turn
+  counter-clockwise, bronze parts clockwise, grey parts aren't driven. Scroll
+  to zoom, drag to pan, click a part to highlight it and its mates.
+- **Problems** lists errors (which block export) and warnings such as
+  undercut, overlapping gears, or a gear passing over another shaft.
+- Positive rpm means counter-clockwise, seen from +z.
 
 ### The `.gear` text format
 
@@ -42,11 +54,14 @@ mesh  G1 G2 angle 0
 ```
 
 Gears on the same shaft turn together (compound gears). `angle` sets which
-direction the second gear sits from the first.
+direction the second gear sits from the first, in degrees counter-clockwise
+from +x. Other optional bits: `name "..."` on parts, `z <mm>` to stack gears
+on a shaft, `back <mm>` for rack thickness below the teeth, and
+`offset <mm>` on a rack mesh to place a second pinion along the rack.
 
 ### Getting it into Fusion 360
 
-1. **Export → All (zip)** and unzip somewhere.
+1. **Export… → Download all (.zip)** and unzip somewhere.
 2. In Fusion, run `geartrain_params.py` (Utilities → Add-Ins → Scripts and
    Add-Ins → green **+**, pick the file, Run). This creates user parameters and
    a `GearTrain Layout` sketch with a point at each shaft.
@@ -55,7 +70,13 @@ direction the second gear sits from the first.
    Place each one on its shaft point — gears are pre-rotated so their teeth
    mesh.
 
-Fit settings (backlash, clearance, kerf) are per project under **Fit**.
+Fit settings (backlash, clearance, kerf) are per project under **Fit
+allowances**. In the export dialog you choose whether DXF and STEP files get
+the kerf offset (by default DXF does, STEP doesn't).
+
+Re-running the Fusion script after changing the train updates the parameters
+and moves the existing shaft points, so geometry you constrained to them
+follows along.
 
 ## Building from source
 

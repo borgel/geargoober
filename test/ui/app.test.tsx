@@ -64,4 +64,30 @@ describe('App', () => {
     render(<App />);
     expect(document.querySelectorAll('path[data-part]').length).toBe(7);
   });
+
+  it('lists export files for a valid project', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Export…' }));
+    const dialog = screen.getByRole('dialog');
+    expect(dialog.textContent).toContain('layout.dxf');
+    expect(dialog.textContent).toContain('G1_z20_m1.step');
+    expect(screen.getByRole('button', { name: 'Download all (.zip)' })).toBeTruthy();
+  });
+
+  it('remembers kerf export choices in the project', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Export…' }));
+    fireEvent.click(screen.getByLabelText(/Offset STEP solids/));
+    expect(localStorage.getItem('geargoober.project')).toContain('kerf_step on');
+  });
+
+  it('blocks export while there are errors', () => {
+    localStorage.setItem('geargoober.project', SMALL.replace('teeth 20', 'teeth 2'));
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Export…' }));
+    expect(screen.getByRole('dialog').textContent).toMatch(/Fix the errors/);
+    expect(screen.queryByRole('button', { name: 'Download all (.zip)' })).toBeNull();
+  });
 });

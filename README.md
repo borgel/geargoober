@@ -27,7 +27,10 @@ use **Save .gear** to keep a file you can share or put in git.
 - **Parts** tab: set pitch (module or diametral pitch), pressure angle, the
   input shaft or rack and its speed, then add shafts, gears, racks and meshes.
   **Fit allowances** holds backlash, root clearance, cutter kerf and bore
-  corner radius.
+  corners (rounded, or dog-bone cut-outs that clear sharp-cornered stock).
+  Every measurement shows its unit.
+- **Gear guide** (toolbar, or any **?** next to a setting) explains what each
+  parameter does and what you trade away by changing it.
 - **Text** tab: the same project as editable text (below).
 - The diagram is to scale on a millimetre grid. Blue-grey parts turn
   counter-clockwise, bronze parts clockwise, grey parts aren't driven. Scroll
@@ -58,13 +61,18 @@ direction the second gear sits from the first, in degrees counter-clockwise
 from +x. Other optional bits: `name "..."` on parts, `z <mm>` to stack gears
 on a shaft, `back <mm>` for rack thickness below the teeth, and
 `offset <mm>` on a rack mesh to place a second pinion along the rack.
+`fit … relief_style dogbone` switches bore corners to dog-bone cut-outs. Ids
+use letters, digits, `_`, `.` and `-`.
 
 ### Getting it into Fusion 360
 
 1. **Export… → Download all (.zip)** and unzip somewhere.
-2. In Fusion, run `geartrain_params.py` (Utilities → Add-Ins → Scripts and
-   Add-Ins → green **+**, pick the file, Run). This creates user parameters and
-   a `GearTrain Layout` sketch with a point at each shaft.
+2. In Fusion: Utilities → Add-Ins → Scripts and Add-Ins → **+** next to My
+   Scripts, pick the unzipped `geartrain_params` folder, and Run. (Fusion runs
+   scripts from a folder named like the script; if you download the `.py` on
+   its own, put it in a `geartrain_params` folder first.) This
+   creates user parameters and a `GearTrain Layout` sketch with a point at each
+   shaft.
 3. Insert gears: **Insert → Insert DXF** for 2D outlines, or for 3D upload the
    `.step` files to your Fusion project and use **Insert into Current Design**.
    Place each one on its shaft point — gears are pre-rotated so their teeth
@@ -74,9 +82,9 @@ Fit settings (backlash, clearance, kerf) are per project under **Fit
 allowances**. In the export dialog you choose whether DXF and STEP files get
 the kerf offset (by default DXF does, STEP doesn't).
 
-Re-running the Fusion script after changing the train updates the parameters
-and moves the existing shaft points, so geometry you constrained to them
-follows along.
+Re-running the Fusion script after changing the train updates the parameters,
+moves the existing shaft points (geometry you constrained to them follows
+along) and removes points and lines for shafts or meshes you deleted.
 
 ## Building from source
 

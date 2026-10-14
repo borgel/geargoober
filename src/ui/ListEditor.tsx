@@ -1,6 +1,7 @@
 import { addGear, addMesh, addRack, addShaft, removeMesh, removePart, renameId } from '../core/edit';
 import type { Bore, Project } from '../core/model';
 import { CommitField, NumField, Select } from './fields';
+import { HelpButton, type GuideTopic } from './help';
 import type { Store } from './state';
 
 const ID_HINT = 'Ids are unique and use letters, digits, _ . or -';
@@ -35,10 +36,12 @@ function Remove({ label, onClick }: { label: string; onClick: () => void }) {
   );
 }
 
-function Header({ title, add, onAdd }: { title: string; add: string; onAdd: () => void }) {
+function Header({ title, add, onAdd, topic }: { title: string; add: string; onAdd: () => void; topic: GuideTopic }) {
   return (
     <div class="section-head">
-      <h2>{title}</h2>
+      <h2>
+        {title} <HelpButton topic={topic} about={title.toLowerCase()} />
+      </h2>
       <button type="button" class="add" onClick={onAdd}>
         {add}
       </button>
@@ -63,7 +66,7 @@ export function ListEditor({ store }: { store: Store }) {
   return (
     <div class="lists">
       <section class="panel-section">
-        <Header title="Shafts" add="Add shaft" onAdd={() => update(addShaft)} />
+        <Header title="Shafts" topic="bores" add="Add shaft" onAdd={() => update(addShaft)} />
         {p.shafts.length === 0 ? (
           <p class="empty">Add a shaft, then put gears on it.</p>
         ) : (
@@ -94,6 +97,7 @@ export function ListEditor({ store }: { store: Store }) {
                   <td>
                     <NumField
                       label={`${s.id} bore size`}
+                      unit="mm"
                       value={boreSize(s.bore)}
                       onChange={(n) =>
                         edit((q) => {
@@ -109,6 +113,7 @@ export function ListEditor({ store }: { store: Store }) {
                     {s.bore.kind === 'dflat' ? (
                       <NumField
                         label={`${s.id} flat depth`}
+                        unit="mm"
                         value={s.bore.flatDepth}
                         onChange={(n) =>
                           edit((q) => {
@@ -130,7 +135,7 @@ export function ListEditor({ store }: { store: Store }) {
       </section>
 
       <section class="panel-section">
-        <Header title="Gears" add="Add gear" onAdd={() => update(addGear)} />
+        <Header title="Gears" topic="teeth" add="Add gear" onAdd={() => update(addGear)} />
         {p.gears.length === 0 ? (
           <p class="empty">Each gear sits on a shaft. Put two gears on one shaft to make a compound gear.</p>
         ) : (
@@ -155,13 +160,13 @@ export function ListEditor({ store }: { store: Store }) {
                     <Select label={`${g.id} shaft`} value={g.shaftId} options={shaftOptions} onChange={(v) => edit((q) => (q.gears[i].shaftId = v))} />
                   </td>
                   <td>
-                    <NumField label={`${g.id} teeth`} value={g.teeth} onChange={(n) => edit((q) => (q.gears[i].teeth = n))} />
+                    <NumField label={`${g.id} teeth`} unit="T" value={g.teeth} onChange={(n) => edit((q) => (q.gears[i].teeth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${g.id} face width`} value={g.faceWidth} onChange={(n) => edit((q) => (q.gears[i].faceWidth = n))} />
+                    <NumField label={`${g.id} face width`} unit="mm" value={g.faceWidth} onChange={(n) => edit((q) => (q.gears[i].faceWidth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${g.id} z offset`} value={g.zOffset} onChange={(n) => edit((q) => (q.gears[i].zOffset = n))} />
+                    <NumField label={`${g.id} z offset`} unit="mm" value={g.zOffset} onChange={(n) => edit((q) => (q.gears[i].zOffset = n))} />
                   </td>
                   <td>
                     <Remove label={`Remove gear ${g.id}`} onClick={() => update((q) => removePart(q, g.id))} />
@@ -174,7 +179,7 @@ export function ListEditor({ store }: { store: Store }) {
       </section>
 
       <section class="panel-section">
-        <Header title="Racks" add="Add rack" onAdd={() => update(addRack)} />
+        <Header title="Racks" topic="racks" add="Add rack" onAdd={() => update(addRack)} />
         {p.racks.length > 0 && (
           <table class="rows">
             <thead>
@@ -193,13 +198,13 @@ export function ListEditor({ store }: { store: Store }) {
                     <CommitField class="id" title={ID_HINT} label={`Rack ${r.id} id`} value={r.id} onCommit={rename(r.id)} />
                   </td>
                   <td>
-                    <NumField label={`${r.id} teeth`} value={r.teeth} onChange={(n) => edit((q) => (q.racks[i].teeth = n))} />
+                    <NumField label={`${r.id} teeth`} unit="T" value={r.teeth} onChange={(n) => edit((q) => (q.racks[i].teeth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${r.id} face width`} value={r.faceWidth} onChange={(n) => edit((q) => (q.racks[i].faceWidth = n))} />
+                    <NumField label={`${r.id} face width`} unit="mm" value={r.faceWidth} onChange={(n) => edit((q) => (q.racks[i].faceWidth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${r.id} back height`} value={r.backHeight} onChange={(n) => edit((q) => (q.racks[i].backHeight = n))} />
+                    <NumField label={`${r.id} back height`} unit="mm" value={r.backHeight} onChange={(n) => edit((q) => (q.racks[i].backHeight = n))} />
                   </td>
                   <td>
                     <Remove label={`Remove rack ${r.id}`} onClick={() => update((q) => removePart(q, r.id))} />
@@ -212,7 +217,7 @@ export function ListEditor({ store }: { store: Store }) {
       </section>
 
       <section class="panel-section">
-        <Header title="Meshes" add="Add mesh" onAdd={() => update(addMesh)} />
+        <Header title="Meshes" topic="layout" add="Add mesh" onAdd={() => update(addMesh)} />
         {p.meshes.length === 0 ? (
           <p class="empty">A mesh says which two gears touch, and at what angle the second sits from the first.</p>
         ) : (
@@ -221,7 +226,7 @@ export function ListEditor({ store }: { store: Store }) {
               <tr>
                 <th>Gear</th>
                 <th>Meshes with</th>
-                <th>Angle°</th>
+                <th>Angle</th>
                 <th>Offset</th>
                 <th />
               </tr>
@@ -232,18 +237,19 @@ export function ListEditor({ store }: { store: Store }) {
                 return (
                   <tr class={selection.includes(m.a) && selection.includes(m.b) ? 'selected' : ''} key={`${i}`}>
                     <td>
-                      <Select label={`Mesh ${i + 1} gear`} value={m.a} options={gearOptions} onChange={(v) => edit((q) => (q.meshes[i].a = v))} />
+                      <Select placeholder="Choose…" label={`Mesh ${i + 1} gear`} value={m.a} options={gearOptions} onChange={(v) => edit((q) => (q.meshes[i].a = v))} />
                     </td>
                     <td>
-                      <Select label={`Mesh ${i + 1} partner`} value={m.b} options={meshTargets} onChange={(v) => edit((q) => (q.meshes[i].b = v))} />
+                      <Select placeholder="Choose…" label={`Mesh ${i + 1} partner`} value={m.b} options={meshTargets} onChange={(v) => edit((q) => (q.meshes[i].b = v))} />
                     </td>
                     <td>
-                      <NumField label={`Mesh ${i + 1} angle`} value={m.angleDeg} onChange={(n) => edit((q) => (q.meshes[i].angleDeg = n))} />
+                      <NumField label={`Mesh ${i + 1} angle`} unit="°" value={m.angleDeg} onChange={(n) => edit((q) => (q.meshes[i].angleDeg = n))} />
                     </td>
                     <td>
                       {toRack ? (
                         <NumField
                           label={`Mesh ${i + 1} rack offset`}
+                          unit="mm"
                           value={m.offset ?? 0}
                           onChange={(n) => edit((q) => (q.meshes[i].offset = n === 0 ? undefined : n))}
                         />

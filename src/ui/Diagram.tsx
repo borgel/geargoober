@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { fmt } from '../core/export/spec';
 import { partProfile } from '../core/geometry/parts';
 import { profileToPath } from '../core/geometry/svgpath';
+import { animationClock, rackTravelSeconds } from './animation';
 import type { Store } from './state';
 
 interface Drawn {
@@ -117,10 +118,21 @@ export function Diagram({ store }: { store: Store }) {
   const fitKey = parts.map((d) => d.id).join('|');
   useEffect(() => setView(bounds), [fitKey]); // refit when parts are added/removed, not on every edit
 
-  const transformFor = (d: Drawn, t: number) => {
+  // A driven rack can only slide so far, so such trains swing back and forth instead of wrapping.
+  const travel = useMemo(
+    () =>
+      rackTravelSeconds(
+        s.racks.flatMap((r) => {
+          const contacts = s.meshes.filter((m) => m.b === r.id && m.contactX !== undefined).map((m) => Math.abs(m.contactX!));
+          return r.mmPerSec === undefined ? [] : [{ length: r.length, pitch: r.pitch, contactX: Math.max(0, ...contacts), mmPerSec: r.mmPerSec }];
+        }),
+      ),
+    [s],
+  );
+  const transformFor = (d: Drawn, elapsed: number) => {
+    const t = animationClock(elapsed, travel);
     if (d.kind === 'gear') return `translate(${d.x} ${d.y}) rotate(${deg(d.angle + (d.speed ?? 0) * t)})`;
-    const shift = d.speed ? (((d.speed * t) % d.rackPitch) + d.rackPitch) % d.rackPitch : 0;
-    return `translate(${d.x} ${d.y}) rotate(${deg(d.angle)}) translate(${shift} 0)`;
+    return `translate(${d.x} ${d.y}) rotate(${deg(d.angle)}) translate(${(d.speed ?? 0) * t} 0)`;
   };
 
   useEffect(() => {
@@ -135,7 +147,7 @@ export function Diagram({ store }: { store: Store }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, mult, parts]);
+  }, [playing, mult, parts, travel]);
 
   // pan & zoom
   const drag = useRef<{ x: number; y: number; view: View } | null>(null);

@@ -55,7 +55,8 @@ export function exportBundle(p: Project, s: Solution, opts: BundleOptions): Bund
     attempt(id, `${base}.step`, () => partStep(p, s, id, { kerf: opts.kerfStep }));
   }
   attempt('', 'layout.dxf', () => layoutDxf(p, s, { kerf: false }));
-  files.push({ name: 'geartrain_params.py', data: fusionScript(p, s, opts.version) });
+  // Fusion runs a script from a folder of the same name, so ship it that way.
+  files.push({ name: 'geartrain_params/geartrain_params.py', data: fusionScript(p, s, opts.version) });
   files.push({ name: 'spec.html', data: specHtml(p, s, opts.version) });
   files.push({ name: 'geartrain.json', data: toJson(p, s) });
   files.push({ name: 'geartrain.csv', data: gearsCsv(p, s) });

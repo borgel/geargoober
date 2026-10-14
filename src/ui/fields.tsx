@@ -4,7 +4,7 @@ import { useEffect, useState } from 'preact/hooks';
 const parse = (t: string) => (t.trim() === '' ? NaN : Number(t));
 const show = (n: number) => (Number.isNaN(n) ? '' : String(n));
 
-export function NumField(props: { value: number; onChange: (n: number) => void; label: string; class?: string }) {
+export function NumField(props: { value: number; onChange: (n: number) => void; label: string; unit?: string; class?: string }) {
   const [text, setText] = useState(show(props.value));
   useEffect(() => {
     if (!Object.is(parse(text), props.value)) setText(show(props.value));
@@ -12,7 +12,7 @@ export function NumField(props: { value: number; onChange: (n: number) => void; 
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.value]);
   const invalid = !Number.isFinite(parse(text));
-  return (
+  const input = (
     <input
       type="text"
       inputMode="decimal"
@@ -26,6 +26,15 @@ export function NumField(props: { value: number; onChange: (n: number) => void; 
         props.onChange(parse(t));
       }}
     />
+  );
+  if (!props.unit) return input;
+  return (
+    <span class="num-wrap" style={{ '--unit-chars': props.unit.length }}>
+      {input}
+      <span class="unit-tag" aria-hidden="true">
+        {props.unit}
+      </span>
+    </span>
   );
 }
 
@@ -62,10 +71,14 @@ export function Select<T extends string>(props: {
   onChange: (v: T) => void;
   label: string;
   class?: string;
+  /** Shown (and selected) when the value isn't one of the options. */
+  placeholder?: string;
 }) {
+  const missing = !props.options.some((o) => o.value === props.value);
+  const options = missing ? [{ value: props.value, label: props.placeholder ?? (props.value || 'Choose…') }, ...props.options] : props.options;
   return (
     <select class={props.class} aria-label={props.label} value={props.value} onChange={(e) => props.onChange((e.target as HTMLSelectElement).value as T)}>
-      {props.options.map((o) => (
+      {options.map((o) => (
         <option value={o.value}>{o.label}</option>
       ))}
     </select>

@@ -137,4 +137,57 @@ describe('App', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Parts' }));
     expect(screen.getByTestId('results').textContent).toContain('-250');
   });
+
+  it('labels measurement fields with units', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    const unitOf = (label: string) => screen.getByLabelText(label).closest('.num-wrap')?.querySelector('.unit-tag')?.textContent;
+    expect(unitOf('G1 face width')).toBe('mm');
+    expect(unitOf('G1 z offset')).toBe('mm');
+    expect(unitOf('G1 teeth')).toBe('T');
+    expect(unitOf('Mesh 1 angle')).toBe('°');
+    expect(unitOf('S1 bore size')).toBe('mm');
+    expect(unitOf('Input speed')).toBe('rpm');
+    expect(unitOf('Pitch value')).toBe('mm');
+    fireEvent.change(screen.getByLabelText('Pitch system'), { target: { value: 'dp' } });
+    expect(unitOf('Pitch value')).toBe('teeth/in');
+    fireEvent.click(screen.getByText('Fit allowances'));
+    expect(unitOf('Clearance')).toBe('× m');
+    expect(unitOf('Kerf')).toBe('mm');
+  });
+
+  it('chooses the corner relief style', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Corner relief style'), { target: { value: 'dogbone' } });
+    expect(localStorage.getItem('geargoober.project')).toContain('relief_style dogbone');
+  });
+
+  it('asks for a mesh partner instead of pretending one is chosen', () => {
+    localStorage.setItem('geargoober.project', 'input S1 rpm 1\nshaft S1 bore round 5\ngear G1 on S1 teeth 20 width 6\n');
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Add mesh' }));
+    const partner = screen.getByLabelText('Mesh 1 partner') as HTMLSelectElement;
+    expect(partner.value).toBe('');
+    expect(partner.selectedOptions[0].textContent).toBe('Choose…');
+  });
+
+  it('shows a non-standard pressure angle from text', () => {
+    localStorage.setItem('geargoober.project', 'pressure_angle 25\n' + SMALL);
+    render(<App />);
+    const pa = screen.getByLabelText('Pressure angle') as HTMLSelectElement;
+    expect(pa.selectedOptions[0].textContent).toBe('25°');
+  });
+
+  it('opens the gear guide, also from a field help button', () => {
+    render(<App />);
+    fireEvent.click(screen.getByRole('button', { name: 'Gear guide' }));
+    const guide = screen.getByRole('dialog', { name: 'Gear guide' });
+    for (const topic of ['Module', 'Pressure angle', 'Tooth count', 'Backlash', 'Root clearance', 'Kerf', 'Face width', 'Contact ratio', 'Corner relief']) {
+      expect(guide.textContent!.toLowerCase()).toContain(topic.toLowerCase());
+    }
+    fireEvent.click(screen.getByRole('button', { name: 'Close guide' }));
+    fireEvent.click(screen.getByRole('button', { name: 'About pressure angle' }));
+    expect(screen.getByRole('dialog', { name: 'Gear guide' })).toBeTruthy();
+  });
 });

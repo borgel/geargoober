@@ -43,7 +43,7 @@ export function ExportDialog({ store, onClose }: { store: Store; onClose: () => 
   const base = safeFileName(p.name);
   const setPref = (key: 'kerfDxf' | 'kerfStep', value: boolean) =>
     update((q) => ({ ...q, exportPrefs: { ...q.exportPrefs, [key]: value } }));
-  const save = (f: BundleFile) => download(f.name, f.data, MIME[f.name.split('.').pop() ?? ''] ?? 'text/plain');
+  const save = (f: BundleFile) => download(f.name.split('/').pop()!, f.data, MIME[f.name.split('.').pop() ?? ''] ?? 'text/plain');
   const kerf = p.fit.kerfMm;
 
   return (
@@ -96,7 +96,7 @@ export function ExportDialog({ store, onClose }: { store: Store; onClose: () => 
               ))}
             </ul>
             <p class="empty">
-              In Fusion 360, run <strong>geartrain_params.py</strong> first (Utilities, Scripts and Add-Ins), then insert each DXF or STEP onto its shaft point.
+              In Fusion 360, run the <strong>geartrain_params</strong> folder first (Utilities, Scripts and Add-Ins), then insert each DXF or STEP onto its shaft point.
             </p>
           </>
         )}

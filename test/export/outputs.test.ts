@@ -113,7 +113,7 @@ describe('exportBundle', () => {
         'R1_n20_m1.step',
         'geartrain.csv',
         'geartrain.json',
-        'geartrain_params.py',
+        'geartrain_params/geartrain_params.py',
         'layout.dxf',
         'project.gear',
         'spec.html',

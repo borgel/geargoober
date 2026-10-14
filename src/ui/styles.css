@@ -8,6 +8,7 @@
   --rule: #c8ced5;
   --anodize: #5a3fc8;
   --anodize-soft: #e7e2fb;
+  --on-anodize: #ffffff;
   --warn: #9a5a00;
   --warn-soft: #fbefd9;
   --error: #b3212b;
@@ -34,6 +35,7 @@
     --rule: #333a43;
     --anodize: #a08cff;
     --anodize-soft: #2c2547;
+    --on-anodize: #17122b;
     --warn: #e8a84a;
     --warn-soft: #3a2c15;
     --error: #ff7b82;
@@ -203,7 +205,7 @@ button:hover {
 button.primary {
   background: var(--anodize);
   border-color: var(--anodize);
-  color: #fff;
+  color: var(--on-anodize);
   font-weight: 600;
 }
 
@@ -240,6 +242,129 @@ input.invalid {
   background: var(--error-soft);
 }
 
+/* numeric input with its unit inside the box */
+.num-wrap {
+  position: relative;
+  display: inline-flex;
+  align-self: flex-start;
+}
+
+.num-wrap input.num {
+  padding-right: calc(0.75rem + var(--unit-chars, 2) * 0.55em);
+  width: calc(3.9rem + var(--unit-chars, 2) * 0.55em);
+}
+
+.unit-tag {
+  position: absolute;
+  right: 0.45rem;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 0.8em;
+  color: var(--ink-soft);
+  pointer-events: none;
+}
+
+table.rows .num-wrap input.num {
+  width: calc(3.3rem + var(--unit-chars, 2) * 0.55em);
+}
+
+button.help {
+  border: 1px solid var(--rule);
+  border-radius: 50%;
+  width: 1.15rem;
+  height: 1.15rem;
+  padding: 0;
+  font-size: 0.72rem;
+  line-height: 1;
+  font-weight: 600;
+  color: var(--ink-soft);
+  vertical-align: 0.1em;
+  margin-left: 0.15rem;
+}
+
+button.help:hover {
+  color: var(--anodize);
+  border-color: var(--anodize);
+}
+
+.wide-cell {
+  grid-column: 1 / -1;
+}
+
+/* ---- gear guide ------------------------------------------------------ */
+dialog.guide {
+  position: fixed;
+  inset: 0 0 0 auto;
+  margin: 0;
+  width: min(440px, 100vw);
+  height: 100vh;
+  max-height: none;
+  border: none;
+  border-left: 1px solid var(--rule);
+  background: var(--panel);
+  color: var(--ink);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  z-index: 10;
+  box-shadow: -8px 0 24px rgb(0 0 0 / 12%);
+}
+
+dialog.guide:not([open]) {
+  display: none;
+}
+
+dialog.guide header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.75rem 1.25rem;
+  border-bottom: 1px solid var(--rule);
+}
+
+dialog.guide header h2 {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.guide-body {
+  overflow: auto;
+  padding: 0.5rem 1.25rem 2rem;
+  line-height: 1.5;
+}
+
+.guide-body h3 {
+  font-size: 1.02rem;
+  font-weight: 600;
+  margin: 1.2rem 0 0.35rem;
+}
+
+.guide-body section:focus {
+  outline: none;
+}
+
+.guide-body section:focus h3 {
+  color: var(--anodize);
+}
+
+.guide-body p,
+.guide-body li {
+  max-width: 62ch;
+}
+
+.guide-body ul {
+  padding-left: 1.1rem;
+  margin: 0.3rem 0;
+}
+
+.guide-body li + li {
+  margin-top: 0.3rem;
+}
+
+.lede {
+  color: var(--ink-soft);
+}
+
 input.id {
   width: 4.2rem;
   font-weight: 600;
@@ -268,7 +393,7 @@ input.id {
 .mode button[aria-pressed='true'] {
   background: var(--anodize);
   border-color: var(--anodize);
-  color: #fff;
+  color: var(--on-anodize);
 }
 
 /* ---- editor ---------------------------------------------------------- */

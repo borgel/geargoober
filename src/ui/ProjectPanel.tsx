@@ -1,5 +1,6 @@
 import type { Project } from '../core/model';
 import { NumField, Select } from './fields';
+import { HelpButton } from './help';
 import type { Store } from './state';
 
 export function ProjectPanel({ store }: { store: Store }) {
@@ -24,8 +25,10 @@ export function ProjectPanel({ store }: { store: Store }) {
         <input type="text" value={p.name} onInput={(e) => set((q) => (q.name = (e.target as HTMLInputElement).value))} />
       </label>
       <div class="field-row">
-        <label class="field">
-          <span>Pitch</span>
+        <div class="field">
+          <span>
+            {p.pitch.system === 'module' ? 'Module' : 'Diametral pitch'} <HelpButton topic="module" about="module and diametral pitch" />
+          </span>
           <div class="joined">
             <Select
               label="Pitch system"
@@ -36,24 +39,34 @@ export function ProjectPanel({ store }: { store: Store }) {
               ]}
               onChange={(v) => set((q) => (q.pitch.system = v))}
             />
-            <NumField label="Pitch value" value={p.pitch.value} onChange={(n) => set((q) => (q.pitch.value = n))} />
+            <NumField
+              label="Pitch value"
+              unit={p.pitch.system === 'module' ? 'mm' : 'teeth/in'}
+              value={p.pitch.value}
+              onChange={(n) => set((q) => (q.pitch.value = n))}
+            />
           </div>
-        </label>
-        <label class="field">
-          <span>Pressure angle</span>
+        </div>
+        <div class="field">
+          <span>
+            Pressure angle <HelpButton topic="pressure-angle" about="pressure angle" />
+          </span>
           <Select
             label="Pressure angle"
             value={String(p.pressureAngleDeg)}
+            placeholder={`${p.pressureAngleDeg}°`}
             options={[
               { value: '20', label: '20°' },
               { value: '14.5', label: '14.5°' },
             ]}
             onChange={(v) => set((q) => (q.pressureAngleDeg = Number(v)))}
           />
-        </label>
+        </div>
       </div>
-      <label class="field wide">
-        <span>Input</span>
+      <div class="field wide">
+        <span>
+          Input <HelpButton topic="ratios" about="ratios, idlers and compound gears" />
+        </span>
         <div class="joined">
           <Select
             label="Input part"
@@ -69,6 +82,7 @@ export function ProjectPanel({ store }: { store: Store }) {
           />
           <NumField
             label="Input speed"
+            unit={p.input.kind === 'shaft' ? 'rpm' : 'mm/s'}
             value={speed}
             onChange={(n) =>
               set((q) => {
@@ -77,27 +91,46 @@ export function ProjectPanel({ store }: { store: Store }) {
               })
             }
           />
-          <span class="unit">{p.input.kind === 'shaft' ? 'rpm' : 'mm/s'}</span>
         </div>
-      </label>
+      </div>
       <details class="fit">
         <summary>Fit allowances</summary>
         <div class="field-grid">
-          <label class="field">
-            <span>Backlash (mm)</span>
-            <NumField label="Backlash" value={p.fit.backlashMm} onChange={(n) => set((q) => (q.fit.backlashMm = n))} />
-          </label>
-          <label class="field">
-            <span>Root clearance (× module)</span>
-            <NumField label="Clearance" value={p.fit.clearanceCoef} onChange={(n) => set((q) => (q.fit.clearanceCoef = n))} />
-          </label>
-          <label class="field">
-            <span>Cutter kerf (mm)</span>
-            <NumField label="Kerf" value={p.fit.kerfMm} onChange={(n) => set((q) => (q.fit.kerfMm = n))} />
-          </label>
-          <label class="field">
-            <span>Bore corner radius (mm)</span>
-            <NumField label="Corner relief" value={p.fit.cornerReliefMm} onChange={(n) => set((q) => (q.fit.cornerReliefMm = n))} />
+          <div class="field">
+            <span>
+              Backlash <HelpButton topic="backlash" about="backlash" />
+            </span>
+            <NumField label="Backlash" unit="mm" value={p.fit.backlashMm} onChange={(n) => set((q) => (q.fit.backlashMm = n))} />
+          </div>
+          <div class="field">
+            <span>
+              Root clearance <HelpButton topic="clearance" about="root clearance" />
+            </span>
+            <NumField label="Clearance" unit="× m" value={p.fit.clearanceCoef} onChange={(n) => set((q) => (q.fit.clearanceCoef = n))} />
+          </div>
+          <div class="field">
+            <span>
+              Cutter kerf <HelpButton topic="kerf" about="kerf" />
+            </span>
+            <NumField label="Kerf" unit="mm" value={p.fit.kerfMm} onChange={(n) => set((q) => (q.fit.kerfMm = n))} />
+          </div>
+          <div class="field">
+            <span>
+              Bore corners <HelpButton topic="bores" about="bore corner relief" />
+            </span>
+            <NumField label="Corner relief" unit="mm" value={p.fit.cornerReliefMm} onChange={(n) => set((q) => (q.fit.cornerReliefMm = n))} />
+          </div>
+          <label class="field wide-cell">
+            <span>Bore corner style</span>
+            <Select
+              label="Corner relief style"
+              value={p.fit.reliefStyle}
+              options={[
+                { value: 'fillet', label: 'Rounded: snug on rounded stock' },
+                { value: 'dogbone', label: 'Dog-bone: clears sharp corners' },
+              ]}
+              onChange={(v) => set((q) => (q.fit.reliefStyle = v))}
+            />
           </label>
         </div>
       </details>

@@ -6,6 +6,8 @@ import { newProject } from '../core/model';
 import { Diagram } from './Diagram';
 import { download, safeFileName } from './download';
 import { ExportDialog } from './ExportDialog';
+import { Guide } from './Guide';
+import { HelpContext, type GuideTopic } from './help';
 import { IssuesPanel } from './IssuesPanel';
 import { ListEditor } from './ListEditor';
 import { ProjectPanel } from './ProjectPanel';
@@ -19,6 +21,7 @@ export function App() {
   const [mode, setMode] = useState<'list' | 'text'>('list');
   const [notice, setNotice] = useState<string>(store.startupNotice);
   const [exporting, setExporting] = useState(false);
+  const [guide, setGuide] = useState<{ topic: GuideTopic | null } | null>(null);
   const fileInput = useRef<HTMLInputElement>(null);
   const base = safeFileName(project.name);
 
@@ -35,6 +38,7 @@ export function App() {
   };
 
   return (
+    <HelpContext.Provider value={(topic) => setGuide({ topic })}>
     <div class="app">
       <header class="toolbar">
         <div class="brand">
@@ -77,6 +81,9 @@ export function App() {
           <button type="button" onClick={() => download(`${base}.json`, toJson(project, store.solution), 'application/json')}>
             Save .json
           </button>
+          <button type="button" aria-pressed={!!guide} onClick={() => setGuide(guide ? null : { topic: null })}>
+            Gear guide
+          </button>
           <button type="button" class="primary" onClick={() => setExporting(true)}>
             Export…
           </button>
@@ -116,6 +123,8 @@ export function App() {
         <ResultsPanel store={store} />
       </section>
       {exporting && <ExportDialog store={store} onClose={() => setExporting(false)} />}
+      {guide && <Guide topic={guide.topic} onClose={() => setGuide(null)} />}
     </div>
+    </HelpContext.Provider>
   );
 }

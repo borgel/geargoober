@@ -45,14 +45,23 @@ function derivative(f: (u: number) => Vec2, u: number, h: number): Vec2 {
 /**
  * Approximate the parametric curve f on [u0, u1] with cubic Bézier spans (Hermite interpolation
  * of value and derivative at each span end), splitting until every span is within `tol` of f.
+ * Pass `df` when the analytic derivative is known (required near endpoints where f is undefined
+ * outside [u0, u1]).
  */
-export function fitHermite(f: (u: number) => Vec2, u0: number, u1: number, tol = 0.001): BezierSeg[] {
+export function fitHermite(
+  f: (u: number) => Vec2,
+  u0: number,
+  u1: number,
+  tol = 0.001,
+  df?: (u: number) => Vec2,
+): BezierSeg[] {
   const h = Math.abs(u1 - u0) * 1e-6;
+  const deriv = df ?? ((u: number) => derivative(f, u, h));
   const out: BezierSeg[] = [];
   const fit = (a: number, b: number, pa: Vec2, pb: Vec2, depth: number) => {
     const span = b - a;
-    const da = derivative(f, a, h);
-    const db = derivative(f, b, h);
+    const da = deriv(a);
+    const db = deriv(b);
     const ctrl: Ctrl = [pa, add(pa, scale(da, span / 3)), sub(pb, scale(db, span / 3)), pb];
     let err = 0;
     for (let i = 1; i < 16; i++) {

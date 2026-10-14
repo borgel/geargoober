@@ -44,11 +44,15 @@ export type Input =
   | { kind: 'shaft'; shaftId: string; rpm: number }
   | { kind: 'rack'; rackId: string; mmPerSec: number };
 
+export type ReliefStyle = 'fillet' | 'dogbone';
+
 export interface Fit {
   backlashMm: number;
   clearanceCoef: number;
   kerfMm: number;
   cornerReliefMm: number;
+  /** fillet: rounded inside corners (snug); dogbone: corner cut-outs that clear sharp-cornered stock. */
+  reliefStyle: ReliefStyle;
 }
 
 export interface ExportPrefs {
@@ -69,7 +73,10 @@ export interface Project {
   exportPrefs: ExportPrefs;
 }
 
-export const DEFAULT_FIT: Fit = { backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0, cornerReliefMm: 0.2 };
+export const DEFAULT_FIT: Fit = { backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0, cornerReliefMm: 0.2, reliefStyle: 'fillet' };
+
+/** Ids are single tokens in the .gear format and part of exported file and parameter names. */
+export const ID_PATTERN = /^[A-Za-z0-9_.-]+$/;
 export const DEFAULT_EXPORT_PREFS: ExportPrefs = { kerfDxf: true, kerfStep: false };
 export const DEFAULT_RACK_BACK = 5;
 

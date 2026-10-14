@@ -104,10 +104,13 @@ function boreProblem(b: Bore): string | undefined {
   }
 }
 
-/** Largest corner relief radius a polygonal bore can take (its inradius). */
-function reliefLimit(b: Bore): number | undefined {
-  if (b.kind === 'hex') return b.acrossFlats / 2;
-  if (b.kind === 'square') return b.side / 2;
+/**
+ * Largest corner relief radius a polygonal bore can take. Fillets are limited by the inradius;
+ * dog-bones cut 2r·cos(half the corner angle) into each edge, so two must fit along one edge.
+ */
+function reliefLimit(b: Bore, style: 'fillet' | 'dogbone'): number | undefined {
+  if (b.kind === 'hex') return style === 'fillet' ? b.acrossFlats / 2 : b.acrossFlats / Math.sqrt(3) / (4 * Math.cos(Math.PI / 3));
+  if (b.kind === 'square') return style === 'fillet' ? b.side / 2 : b.side / (4 * Math.cos(Math.PI / 4));
   return undefined;
 }
 
@@ -130,6 +133,7 @@ export function solve(p: Project): Solution {
   if (!(clearanceCoef >= 0 && clearanceCoef < 1)) err('clearance coefficient must be between 0 and 1');
   if (!(p.fit.kerfMm >= 0)) err('kerf must be ≥ 0');
   if (!(p.fit.cornerReliefMm >= 0)) err('corner relief must be ≥ 0');
+  if (p.fit.reliefStyle !== 'fillet' && p.fit.reliefStyle !== 'dogbone') err('corner relief style must be fillet or dogbone');
 
   const seen = new Set<string>();
   for (const id of [...p.shafts, ...p.gears, ...p.racks].map((x) => x.id)) {
@@ -146,9 +150,9 @@ export function solve(p: Project): Solution {
     const problem = boreProblem(s.bore);
     if (problem) err(`${s.id}: ${problem}`, s.id);
     else {
-      const limit = reliefLimit(s.bore);
+      const limit = reliefLimit(s.bore, p.fit.reliefStyle);
       if (limit !== undefined && p.fit.cornerReliefMm >= limit) {
-        err(`${s.id}: corner relief ${p.fit.cornerReliefMm} mm is too large for this bore (must be under ${limit} mm)`, s.id);
+        err(`${s.id}: corner relief ${p.fit.cornerReliefMm} mm is too large for this bore (must be under ${fmt(limit)} mm)`, s.id);
       }
     }
   }
@@ -289,7 +293,10 @@ export function solve(p: Project): Solution {
     }
   };
 
+  const angleWarned = new Set<number>();
   const meshAngleCheck = (meshIdx: number, actual: number) => {
+    if (angleWarned.has(meshIdx)) return;
+    angleWarned.add(meshIdx);
     const mesh = p.meshes[meshIdx];
     const d = Math.abs(frac((mesh.angleDeg * DEG - actual) / TAU + 0.5) - 0.5) * 360;
     if (d > 0.01) warn(`mesh ${mesh.a}–${mesh.b}: angle ${mesh.angleDeg}° ignored; the rack fixes it at ${fmt(normAngle(actual) / DEG)}°`, mesh.a, mesh.b);

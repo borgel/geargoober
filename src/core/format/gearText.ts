@@ -1,6 +1,7 @@
 // The line-based `.gear` text format. See docs/superpowers/specs for the grammar.
 import {
   DEFAULT_RACK_BACK,
+  ID_PATTERN,
   newProject,
   type Bore,
   type Gear,
@@ -162,6 +163,7 @@ export function parseGear(text: string): ParseResult {
   const lines = text.split('\n');
 
   const claimId = (id: string, col: number) => {
+    if (!ID_PATTERN.test(id)) throw new LineError(col, `id "${id}" may only use letters, digits, _ . or -`);
     if (ids.has(id)) throw new LineError(col, `duplicate id "${id}"`);
     ids.add(id);
   };
@@ -197,6 +199,12 @@ export function parseGear(text: string): ParseResult {
             else if (key === 'clearance') project.fit.clearanceCoef = c.num('clearance');
             else if (key === 'kerf') project.fit.kerfMm = c.num('kerf');
             else if (key === 'relief') project.fit.cornerReliefMm = c.num('relief');
+            else if (key === 'relief_style') {
+              const sc = c.peekCol();
+              const style = c.word('relief style');
+              if (style !== 'fillet' && style !== 'dogbone') throw new LineError(sc, `relief_style must be fillet or dogbone, got "${style}"`);
+              project.fit.reliefStyle = style;
+            }
             else unknownKey(key, col);
           });
           break;
@@ -342,7 +350,7 @@ export function serializeGear(p: Project): string {
   out.push(`pressure_angle ${num(p.pressureAngleDeg)}`);
   const f = p.fit;
   out.push(
-    `fit backlash ${num(f.backlashMm)} clearance ${num(f.clearanceCoef)} kerf ${num(f.kerfMm)} relief ${num(f.cornerReliefMm)}`,
+    `fit backlash ${num(f.backlashMm)} clearance ${num(f.clearanceCoef)} kerf ${num(f.kerfMm)} relief ${num(f.cornerReliefMm)} relief_style ${f.reliefStyle}`,
   );
   out.push(
     `export kerf_dxf ${p.exportPrefs.kerfDxf ? 'on' : 'off'} kerf_step ${p.exportPrefs.kerfStep ? 'on' : 'off'}`,

@@ -18,7 +18,8 @@ function real(x: number): string {
   return s;
 }
 
-const str = (s: string) => `'${s.replace(/'/g, "''").replace(/[^\x20-\x7e]/g, '_')}'`;
+// ISO 10303-21 strings: backslash doubled, apostrophe doubled, plain ASCII only.
+const str = (s: string) => `'${s.replace(/\\/g, '\\\\').replace(/'/g, "''").replace(/[^\x20-\x7e]/g, '_')}'`;
 
 class StepWriter {
   private lines: string[] = [];
@@ -168,7 +169,7 @@ export function partStep(p: Project, s: Solution, id: string, opts: PartOptions,
   return [
     'ISO-10303-21;',
     'HEADER;',
-    `FILE_DESCRIPTION(('GearGoober part ${id.replace(/'/g, '')}'),'2;1');`,
+    `FILE_DESCRIPTION((${str(`GearGoober part ${id}`)}),'2;1');`,
     `FILE_NAME(${str(id + '.step')},'${timestamp}',(''),(''),'GearGoober','GearGoober','');`,
     "FILE_SCHEMA(('AUTOMOTIVE_DESIGN { 1 0 10303 214 1 1 1 1 }'));",
     'ENDSEC;',

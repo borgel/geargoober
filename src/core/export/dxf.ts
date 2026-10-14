@@ -17,6 +17,16 @@ function n(x: number): string {
   return s.endsWith('.') ? s + '0' : s;
 }
 
+/** DXF R2000 text is ANSI_1252 here; anything outside ASCII is written as a \U+XXXX escape. */
+function dxfText(s: string): string {
+  let out = '';
+  for (const ch of s.replace(/[\r\n]+/g, ' ')) {
+    const cp = ch.codePointAt(0)!;
+    out += cp < 0x7f ? ch : cp <= 0xffff ? `\\U+${cp.toString(16).toUpperCase().padStart(4, '0')}` : '?';
+  }
+  return out;
+}
+
 const code = (c: number) => String(c).padStart(3, ' ');
 
 class DxfWriter {
@@ -74,7 +84,7 @@ class DxfWriter {
     this.entity('TEXT', layer, 'AcDbText');
     this.xyz(10, p);
     this.pair(40, height);
-    this.pair(1, value.replace(/[\r\n]+/g, ' '));
+    this.pair(1, dxfText(value));
     this.pair(100, 'AcDbText');
   }
 

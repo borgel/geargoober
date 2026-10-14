@@ -1,5 +1,5 @@
 // Immutable project edits used by the list editor.
-import type { Project } from './model';
+import { ID_PATTERN, type Project } from './model';
 
 const clone = (p: Project): Project => structuredClone(p);
 
@@ -45,8 +45,7 @@ export function addMesh(p: Project): Project {
   return q;
 }
 
-/** Ids are single tokens in the .gear format and part of exported file and parameter names. */
-export const ID_PATTERN = /^[A-Za-z0-9_.-]+$/;
+export { ID_PATTERN };
 export const isValidId = (id: string): boolean => ID_PATTERN.test(id);
 
 /** Renames a part and every reference to it. Invalid or already-used targets leave the project unchanged. */

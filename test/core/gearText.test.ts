@@ -31,7 +31,7 @@ describe('parseGear', () => {
     const p = ok(SPEC_EXAMPLE);
     expect(p.name).toBe('Clock reduction');
     expect(p.pitch).toEqual({ system: 'module', value: 1 });
-    expect(p.fit).toEqual({ backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0.15, cornerReliefMm: 0.2 });
+    expect(p.fit).toEqual({ backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0.15, cornerReliefMm: 0.2, reliefStyle: 'fillet' });
     expect(p.input).toEqual({ kind: 'shaft', shaftId: 'S1', rpm: 1000 });
     expect(p.shafts.map((s) => s.bore)).toEqual([
       { kind: 'round', dia: 5 },

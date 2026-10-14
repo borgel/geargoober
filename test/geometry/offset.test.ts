@@ -71,7 +71,10 @@ describe('offsetLoop', () => {
     const loop = spurOuterLoop({ m: 0.3, z: 20, paRad: 20 * DEG, backlash: 0.02, clearanceCoef: 0.25 }).loop;
     const r = offsetLoop(loop, 0.15);
     expect(r.ok).toBe(false);
-    if (!r.ok) expect(r.error).toMatch(/kerf/i);
+    if (!r.ok) {
+      expect(r.error).toMatch(/inside radius/i);
+      expect(r.radius).toBeCloseTo(0.114, 9);
+    }
   });
 });
 

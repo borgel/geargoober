@@ -33,7 +33,7 @@ describe('newProject', () => {
   it('uses spec defaults', () => {
     const p = newProject();
     expect(p.pressureAngleDeg).toBe(20);
-    expect(p.fit).toEqual({ backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0, cornerReliefMm: 0.2 });
+    expect(p.fit).toEqual({ backlashMm: 0.1, clearanceCoef: 0.25, kerfMm: 0, cornerReliefMm: 0.2, reliefStyle: 'fillet' });
     expect(p.exportPrefs).toEqual({ kerfDxf: true, kerfStep: false });
   });
 });

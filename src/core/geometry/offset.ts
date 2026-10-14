@@ -5,16 +5,16 @@ import { fitHermite } from './bezier';
 import { segEnd, segTangent } from './sample';
 import type { Loop, Segment } from './types';
 
-export type OffsetResult = { ok: true; loop: Loop } | { ok: false; error: string };
+export type OffsetResult = { ok: true; loop: Loop } | { ok: false; error: string; /** smallest inside radius that blocked the offset */ radius?: number };
 
-function offsetSegment(s: Segment, d: number): Segment[] | string {
+function offsetSegment(s: Segment, d: number): Segment[] | { error: string; radius: number } {
   if (s.kind === 'line') {
     const n = scale(rightNormal(segTangent(s, 0)), d);
     return [{ kind: 'line', a: add(s.a, n), b: add(s.b, n) }];
   }
   if (s.kind === 'arc') {
     const r = s.end > s.start ? s.r + d : s.r - d;
-    if (r <= 1e-6) return `kerf offset ${d.toFixed(3)} mm is too large for a ${s.r.toFixed(3)} mm radius`;
+    if (r <= 1e-6) return { error: `offset ${d.toFixed(3)} mm is larger than a ${s.r.toFixed(3)} mm inside radius`, radius: s.r };
     return [{ ...s, r }];
   }
   const f = (u: number): Vec2 => add(bezierPoint(s.p, u), scale(rightNormal(segTangent(s, Math.min(1, Math.max(0, u)))), d));
@@ -28,7 +28,7 @@ export function offsetLoop(loop: Loop, d: number): OffsetResult {
     const s = loop[i];
     const next = loop[(i + 1) % loop.length];
     const segs = offsetSegment(s, d);
-    if (typeof segs === 'string') return { ok: false, error: segs };
+    if (!Array.isArray(segs)) return { ok: false, error: segs.error, radius: segs.radius };
     out.push(...segs);
     const t1 = segTangent(s, 1);
     const t2 = segTangent(next, 0);

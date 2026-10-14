@@ -3,7 +3,8 @@ import type { Solution } from '../solver';
 
 const cell = (v: string | number | undefined): string => {
   if (v === undefined) return '';
-  const s = typeof v === 'number' ? String(Number(v.toFixed(6))) : v;
+  // text that a spreadsheet would run as a formula gets a leading apostrophe; numbers stay as-is
+  const s = typeof v === 'number' ? String(Number(v.toFixed(6))) : /^[=+\-@\t\r]/.test(v) ? `'${v}` : v;
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 };
 

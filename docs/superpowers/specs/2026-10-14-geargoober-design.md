@@ -137,7 +137,9 @@ interface Project {
   racks:  { id: string; name: string; teeth: number; faceWidth: number;
             backHeight: number }[];
   meshes: { a: string /* gearId */; b: string /* gearId | rackId */;
-            angleDeg: number }[];
+            angleDeg: number;
+            offset?: number /* rack meshes: contact x along the rack, used
+                               when the gear is positioned from the rack */ }[];
 }
 ```
 

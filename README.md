@@ -97,6 +97,13 @@ You only need Docker.
 ./gg shell    # shell inside the build container
 ```
 
+### Publishing to GitHub Pages
+
+`.github/workflows/pages.yml` tests, builds and publishes the app on every
+push to `main` (or on demand from the Actions tab). Enable it once under
+**Settings → Pages → Source: GitHub Actions**. The page is served as
+`index.html`; it's the same single file as `dist/geargoober.html`.
+
 ## Roadmap
 
 Support for other CAD tools (Onshape, FreeCAD, SolidWorks, Inventor) is

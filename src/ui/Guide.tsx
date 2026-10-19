@@ -103,6 +103,7 @@ export function Guide({ topic, onClose }: Props) {
           <ul>
             <li>Center distance is fixed by the two tooth counts and the module: module × (teeth A + teeth B) ÷ 2. You only choose the direction.</li>
             <li>The mesh angle is that direction, measured counter-clockwise from +x. It changes the layout, never the speeds.</li>
+            <li>When you add a mesh or pick its gears, the angle is set to a spot pointing away from the rest of the train where nothing overlaps. Change it freely.</li>
             <li>Z stacks gears along a shaft. Meshing gears must overlap in Z, and gears that don't mesh may only overlap in plan if they're at different Z.</li>
             <li>Shaft positions and center distances are exported to the Fusion script and spec sheet; hold them to a tight tolerance in your housing.</li>
           </ul>

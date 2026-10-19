@@ -640,6 +640,8 @@ table.data tbody tr {
 
 .part {
   fill-rule: evenodd;
+  /* slightly see-through, so a part hidden under another still shows */
+  fill-opacity: 0.8;
   stroke: var(--metal-edge);
   stroke-width: 1px;
   vector-effect: non-scaling-stroke;

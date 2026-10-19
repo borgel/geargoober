@@ -1,3 +1,4 @@
+import { suggestMeshAngle } from '../core/meshAngle';
 import { addGear, addMesh, addRack, addShaft, removeMesh, removePart, renameId } from '../core/edit';
 import type { Bore, Project } from '../core/model';
 import { CommitField, NumField, Select } from './fields';
@@ -47,6 +48,13 @@ function Header({ title, add, onAdd, topic }: { title: string; add: string; onAd
       </button>
     </div>
   );
+}
+
+/** Sets one end of a mesh and moves the mesh to an angle where the gears don't land on other parts. */
+function pickMeshEnd(q: Project, i: number, end: 'a' | 'b', id: string) {
+  q.meshes[i][end] = id;
+  const angle = suggestMeshAngle(q, i);
+  if (angle !== undefined) q.meshes[i].angleDeg = angle;
 }
 
 export function ListEditor({ store }: { store: Store }) {
@@ -241,10 +249,10 @@ export function ListEditor({ store }: { store: Store }) {
                 return (
                   <tr class={selection.includes(m.a) && selection.includes(m.b) ? 'selected' : ''} key={`${i}`}>
                     <td>
-                      <Select placeholder="Choose…" label={`Mesh ${i + 1} gear`} value={m.a} options={gearOptions} onChange={(v) => edit((q) => (q.meshes[i].a = v))} />
+                      <Select placeholder="Choose…" label={`Mesh ${i + 1} gear`} value={m.a} options={gearOptions} onChange={(v) => edit((q) => pickMeshEnd(q, i, 'a', v))} />
                     </td>
                     <td>
-                      <Select placeholder="Choose…" label={`Mesh ${i + 1} partner`} value={m.b} options={meshTargets} onChange={(v) => edit((q) => (q.meshes[i].b = v))} />
+                      <Select placeholder="Choose…" label={`Mesh ${i + 1} partner`} value={m.b} options={meshTargets} onChange={(v) => edit((q) => pickMeshEnd(q, i, 'b', v))} />
                     </td>
                     <td>
                       <NumField label={`Mesh ${i + 1} angle`} unit="°" value={m.angleDeg} onChange={(n) => edit((q) => (q.meshes[i].angleDeg = n))} />

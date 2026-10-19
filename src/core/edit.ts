@@ -1,4 +1,5 @@
 // Immutable project edits used by the list editor.
+import { suggestMeshAngle } from './meshAngle';
 import { ID_PATTERN, type Project } from './model';
 
 const clone = (p: Project): Project => structuredClone(p);
@@ -42,6 +43,7 @@ export function addMesh(p: Project): Project {
   const a = g[g.length - 2]?.id ?? g[0]?.id ?? '';
   const b = g.length >= 2 ? g[g.length - 1].id : (q.racks[0]?.id ?? '');
   q.meshes.push({ a, b, angleDeg: 0 });
+  q.meshes[q.meshes.length - 1].angleDeg = suggestMeshAngle(q, q.meshes.length - 1) ?? 0;
   return q;
 }
 

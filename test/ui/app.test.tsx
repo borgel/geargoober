@@ -249,6 +249,25 @@ describe('App', () => {
     expect(section.textContent).toMatch(/STEP/);
   });
 
+  it('suggests a clear angle when a mesh partner is chosen', () => {
+    localStorage.setItem(
+      'geargoober.project',
+      'input S1 rpm 100\nshaft S1 bore round 3\nshaft S2 bore round 3\nshaft S3 bore round 3\n' +
+        'gear G1 on S1 teeth 60 width 5\ngear G2 on S2 teeth 20 width 5\ngear G3 on S3 teeth 12 width 5\n' +
+        'mesh G1 G2 angle 0\nmesh G1 G2 angle 0\n',
+    );
+    render(<App />);
+    fireEvent.change(screen.getByLabelText('Mesh 2 partner'), { target: { value: 'G3' } });
+    expect((screen.getByLabelText('Mesh 2 angle') as HTMLInputElement).value).toBe('180');
+  });
+
+  it('draws racks underneath and smaller gears on top of bigger ones', () => {
+    localStorage.setItem('geargoober.project', SMALL + 'rack R1 teeth 20 width 6\nmesh G2 R1 angle 90\n');
+    const { container } = render(<App />);
+    const order = [...container.querySelectorAll('svg path[data-part]')].map((e) => e.getAttribute('data-part'));
+    expect(order).toEqual(['R1', 'G2', 'G1']);
+  });
+
   it('chooses the corner relief style', () => {
     localStorage.setItem('geargoober.project', SMALL);
     render(<App />);

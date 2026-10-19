@@ -55,9 +55,9 @@ export function Diagram({ store }: { store: Store }) {
   const parts = useMemo<Drawn[]>(() => {
     if (!s.laidOut) return [];
     const out: Drawn[] = [];
-    const zOf = new Map(p.gears.map((g) => [g.id, g.zOffset]));
-    const byZ = [...s.gears].sort((a, b) => (zOf.get(a.id) ?? 0) - (zOf.get(b.id) ?? 0));
-    for (const g of byZ) {
+    // Racks first (underneath), then gears largest to smallest, so small gears are never hidden.
+    const bySize = [...s.gears].sort((a, b) => b.pitchR - a.pitchR);
+    for (const g of bySize) {
       const r = partProfile(p, s, g.id, { kerf: false, zeroPhase: true });
       if (!r.ok) continue;
       const rpm = g.rpm;
@@ -103,7 +103,7 @@ export function Diagram({ store }: { store: Store }) {
         labelY: rs.origin.y + below.y,
       });
     }
-    return out;
+    return [...out.filter((d) => d.kind === 'rack'), ...out.filter((d) => d.kind === 'gear')];
   }, [p, s]);
 
   const bounds = useMemo<View>(() => {

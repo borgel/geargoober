@@ -58,7 +58,8 @@ gear  G2 on S2 teeth 48 width 6
 mesh  G1 G2 angle 0
 ```
 
-Gears on the same shaft turn together (compound gears). `angle` sets which
+`width` is a part's thickness along its shaft (the app's **Thickness**
+column). Gears on the same shaft turn together (compound gears). `angle` sets which
 direction the second gear sits from the first, in degrees counter-clockwise
 from +x. Other optional bits: `name "..."` on parts, `z <mm>` to stack gears
 on a shaft, `back <mm>` for rack thickness below the teeth, and

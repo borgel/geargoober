@@ -152,8 +152,8 @@ ${layoutSvg(p, s)}
 <h2>Shafts</h2>
 <table><thead><tr><th>id</th><th>name</th><th>x</th><th>y</th><th>rpm</th>${stepHead}<th>dir</th><th>torque ×</th><th>bore</th></tr></thead><tbody>${shaftRows}</tbody></table>
 <h2>Gears</h2>
-<table><thead><tr><th>id</th><th>name</th><th>shaft</th><th>teeth</th><th>pitch Ø</th><th>outer Ø</th><th>root Ø</th><th>face</th><th>z</th><th>phase°</th><th>rpm</th><th>pitch speed mm/s</th></tr></thead><tbody>${gearRows}</tbody></table>
-${rackRows ? `<h2>Racks</h2><table><thead><tr><th>id</th><th>name</th><th>teeth</th><th>length</th><th>face</th><th>back</th><th>origin</th><th>angle°</th><th>mm/s</th>${stepHead}</tr></thead><tbody>${rackRows}</tbody></table>` : ''}
+<table><thead><tr><th>id</th><th>name</th><th>shaft</th><th>teeth</th><th>pitch Ø</th><th>outer Ø</th><th>root Ø</th><th>thickness</th><th>z</th><th>phase°</th><th>rpm</th><th>pitch speed mm/s</th></tr></thead><tbody>${gearRows}</tbody></table>
+${rackRows ? `<h2>Racks</h2><table><thead><tr><th>id</th><th>name</th><th>teeth</th><th>length</th><th>thickness</th><th>back</th><th>origin</th><th>angle°</th><th>mm/s</th>${stepHead}</tr></thead><tbody>${rackRows}</tbody></table>` : ''}
 <h2>Meshes</h2>
 <table><thead><tr><th>a</th><th>b</th><th>center distance</th><th>ratio b/a</th><th>contact ratio</th></tr></thead><tbody>${meshRows}</tbody></table>
 <h2>Issues</h2>

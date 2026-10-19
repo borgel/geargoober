@@ -145,7 +145,9 @@ export function ListEditor({ store }: { store: Store }) {
                 <th>Id</th>
                 <th>Shaft</th>
                 <th>Teeth</th>
-                <th>Width</th>
+                <th>
+                  Thickness <HelpButton topic="face-width" about="thickness" />
+                </th>
                 <th>Z</th>
                 <th />
               </tr>
@@ -163,7 +165,7 @@ export function ListEditor({ store }: { store: Store }) {
                     <NumField label={`${g.id} teeth`} unit="T" value={g.teeth} onChange={(n) => edit((q) => (q.gears[i].teeth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${g.id} face width`} unit="mm" value={g.faceWidth} onChange={(n) => edit((q) => (q.gears[i].faceWidth = n))} />
+                    <NumField label={`${g.id} thickness`} unit="mm" value={g.faceWidth} onChange={(n) => edit((q) => (q.gears[i].faceWidth = n))} />
                   </td>
                   <td>
                     <NumField label={`${g.id} z offset`} unit="mm" value={g.zOffset} onChange={(n) => edit((q) => (q.gears[i].zOffset = n))} />
@@ -186,7 +188,9 @@ export function ListEditor({ store }: { store: Store }) {
               <tr>
                 <th>Id</th>
                 <th>Teeth</th>
-                <th>Width</th>
+                <th>
+                  Thickness <HelpButton topic="face-width" about="thickness" />
+                </th>
                 <th>Back</th>
                 <th />
               </tr>
@@ -201,7 +205,7 @@ export function ListEditor({ store }: { store: Store }) {
                     <NumField label={`${r.id} teeth`} unit="T" value={r.teeth} onChange={(n) => edit((q) => (q.racks[i].teeth = n))} />
                   </td>
                   <td>
-                    <NumField label={`${r.id} face width`} unit="mm" value={r.faceWidth} onChange={(n) => edit((q) => (q.racks[i].faceWidth = n))} />
+                    <NumField label={`${r.id} thickness`} unit="mm" value={r.faceWidth} onChange={(n) => edit((q) => (q.racks[i].faceWidth = n))} />
                   </td>
                   <td>
                     <NumField label={`${r.id} back height`} unit="mm" value={r.backHeight} onChange={(n) => edit((q) => (q.racks[i].backHeight = n))} />

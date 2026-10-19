@@ -161,13 +161,13 @@ export function solve(p: Project): Solution {
     if (!shaftById.has(g.shaftId)) err(`${g.id}: unknown shaft "${g.shaftId}"`, g.id, g.shaftId);
     if (!Number.isInteger(g.teeth) || g.teeth < 4) err(`${g.id}: teeth must be a whole number ≥ 4`, g.id);
     else if (g.teeth > MAX_GEAR_TEETH) err(`${g.id}: ${g.teeth} teeth is more than the ${MAX_GEAR_TEETH} supported`, g.id);
-    if (!isPos(g.faceWidth)) err(`${g.id}: face width must be > 0`, g.id);
+    if (!isPos(g.faceWidth)) err(`${g.id}: thickness must be > 0`, g.id);
     if (!Number.isFinite(g.zOffset)) err(`${g.id}: z offset must be a number`, g.id);
   }
   for (const r of p.racks) {
     if (!Number.isInteger(r.teeth) || r.teeth < 1) err(`${r.id}: teeth must be a whole number ≥ 1`, r.id);
     else if (r.teeth > MAX_RACK_TEETH) err(`${r.id}: ${r.teeth} teeth is more than the ${MAX_RACK_TEETH} supported`, r.id);
-    if (!isPos(r.faceWidth)) err(`${r.id}: face width must be > 0`, r.id);
+    if (!isPos(r.faceWidth)) err(`${r.id}: thickness must be > 0`, r.id);
     if (!isPos(r.backHeight)) err(`${r.id}: back height must be > 0`, r.id);
   }
   const pairs = new Set<string>();

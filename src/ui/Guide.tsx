@@ -138,11 +138,17 @@ export function Guide({ topic, onClose }: Props) {
         </section>
 
         <section id="guide-face-width" tabIndex={-1}>
-          <h3>Face width</h3>
+          <h3>Thickness (face width)</h3>
           <p>
-            How thick the gear is. Load capacity grows roughly with width, so wider teeth last longer. Past about 8–12 × module, small
-            alignment errors mean only one edge of the tooth actually carries load, so extra width stops helping.
+            How thick a gear or rack is, measured along the shafts. Gear makers call it face width. The diagram looks straight down the
+            shafts, so thickness never shows there; a rack's length comes from its tooth count instead (teeth × π × module).
           </p>
+          <ul>
+            <li>Load capacity grows roughly with thickness, so thicker teeth last longer. Past about 8–12 × module, small alignment errors mean only one edge of the tooth actually carries load, so extra thickness stops helping.</li>
+            <li>Meshing parts must overlap in thickness at their Z positions; the problems list warns when they don't.</li>
+            <li>It sets the extrusion depth of STEP files and the <code>_face</code> parameters in the Fusion script. DXF outlines are flat, so there the stock you cut from sets the thickness.</li>
+            <li>In <code>.gear</code> text it's the <code>width</code> key.</li>
+          </ul>
         </section>
 
         <section id="guide-kerf" tabIndex={-1}>

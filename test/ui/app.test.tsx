@@ -104,7 +104,7 @@ describe('App', () => {
   it('never autosaves a project that would not load again', () => {
     localStorage.setItem('geargoober.project', SMALL);
     render(<App />);
-    fireEvent.input(screen.getByLabelText('G1 face width'), { target: { value: '' } });
+    fireEvent.input(screen.getByLabelText('G1 thickness'), { target: { value: '' } });
     const saved = localStorage.getItem('geargoober.project')!;
     expect(parseGear(saved).ok).toBe(true);
     expect(saved).toContain('width 6');
@@ -151,7 +151,7 @@ describe('App', () => {
     localStorage.setItem('geargoober.project', SMALL);
     render(<App />);
     const unitOf = (label: string) => screen.getByLabelText(label).closest('.num-wrap')?.querySelector('.unit-tag')?.textContent;
-    expect(unitOf('G1 face width')).toBe('mm');
+    expect(unitOf('G1 thickness')).toBe('mm');
     expect(unitOf('G1 z offset')).toBe('mm');
     expect(unitOf('G1 teeth')).toBe('T');
     expect(unitOf('Mesh 1 angle')).toBe('°');
@@ -233,6 +233,20 @@ describe('App', () => {
     localStorage.setItem('geargoober.project', SMALL);
     const smooth = render(<App />);
     expect(smooth.container.querySelectorAll('svg .escapement-mark')).toHaveLength(0);
+  });
+
+  it('calls face width "Thickness" and explains it in the guide', () => {
+    localStorage.setItem('geargoober.project', SMALL + 'rack R1 teeth 20 width 6\nmesh G2 R1 angle 90\n');
+    render(<App />);
+    expect(screen.getAllByRole('columnheader', { name: /thickness/i })).toHaveLength(2);
+    expect(screen.getByLabelText('R1 thickness')).toBeTruthy();
+    const help = screen.getAllByRole('button', { name: 'About thickness' });
+    expect(help).toHaveLength(2);
+    fireEvent.click(help[1]);
+    const section = screen.getByRole('dialog', { name: 'Gear guide' }).querySelector('#guide-face-width')!;
+    expect(section.textContent).toMatch(/thickness/i);
+    expect(section.textContent).toMatch(/rack/i);
+    expect(section.textContent).toMatch(/STEP/);
   });
 
   it('chooses the corner relief style', () => {

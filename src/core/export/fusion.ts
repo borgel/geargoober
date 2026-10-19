@@ -33,8 +33,8 @@ export function fusionScript(p: Project, s: Solution, version: string): string {
   for (const m of s.meshes) {
     add(`cd_${paramName(m.a)}_${paramName(m.b)}`, `${num(m.centerDist)} mm`, 'mm', `center distance ${m.a}-${m.b}`);
   }
-  for (const g of p.gears) add(`${paramName(g.id)}_face`, `${num(g.faceWidth)} mm`, 'mm', `${g.id} face width`);
-  for (const r of p.racks) add(`${paramName(r.id)}_face`, `${num(r.faceWidth)} mm`, 'mm', `${r.id} face width`);
+  for (const g of p.gears) add(`${paramName(g.id)}_face`, `${num(g.faceWidth)} mm`, 'mm', `${g.id} thickness (face width)`);
+  for (const r of p.racks) add(`${paramName(r.id)}_face`, `${num(r.faceWidth)} mm`, 'mm', `${r.id} thickness (face width)`);
 
   const gearShaft = new Map(s.gears.map((g) => [g.id, g.shaftId]));
   const linkKeys = new Set<string>();

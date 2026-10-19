@@ -690,6 +690,15 @@ table.data tbody tr {
   pointer-events: none;
 }
 
+.part-label.shaft {
+  fill: var(--anodize);
+}
+
+.part-label.speed {
+  font-weight: 500;
+  fill: var(--ink-soft);
+}
+
 .diagram-controls {
   position: absolute;
   left: 0.75rem;

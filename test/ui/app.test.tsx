@@ -2,6 +2,7 @@
 import { cleanup, fireEvent, render, screen } from '@testing-library/preact';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
 import { parseGear } from '../../src/core/format/gearText';
+import { newProject } from '../../src/core/model';
 import { App } from '../../src/ui/App';
 
 const SMALL = `project "UI test"
@@ -179,6 +180,33 @@ describe('App', () => {
     expect(results.textContent).toContain('-1500°');
     fireEvent.input(ticks, { target: { value: '' } });
     expect(localStorage.getItem('geargoober.project')).not.toContain('ticks');
+  });
+
+  it('labels every shaft and gear in the diagram, each gear on its own ring', () => {
+    localStorage.setItem(
+      'geargoober.project',
+      SMALL + 'shaft S3 bore round 5\ngear G3 on S2 teeth 15 width 6 z 8\ngear G4 on S3 teeth 45 width 6 z 8\nmesh G3 G4 angle 90\n',
+    );
+    const { container } = render(<App />);
+    const labels = [...container.querySelectorAll('svg .part-label')];
+    const text = (t: string) => labels.filter((l) => l.textContent === t);
+    for (const id of ['S1', 'S2', 'S3', 'G1', 'G2', 'G3', 'G4']) expect(text(id), id).toHaveLength(1);
+    expect(labels.some((l) => l.textContent === '-500 rpm')).toBe(true);
+    // G3 (15T) and G2 (40T) share S2: G3's label sits inside G3, G2's in the band only G2 covers
+    const y = (t: string) => -Number(text(t)[0].getAttribute('y'));
+    const s2 = { y: 0 };
+    const rG3 = 7.5, rG2 = 20;
+    expect(y('G3') - s2.y).toBeGreaterThan(0);
+    expect(y('G3') - s2.y).toBeLessThan(rG3);
+    expect(y('G2') - s2.y).toBeGreaterThan(rG3);
+    expect(y('G2') - s2.y).toBeLessThan(rG2);
+  });
+
+  it('starts at 100 rpm and plays back at real speed', () => {
+    render(<App />);
+    expect((screen.getByLabelText('Input speed') as HTMLInputElement).value).toBe('100');
+    expect((screen.getByLabelText(/playback/i) as HTMLSelectElement).value).toBe('1');
+    expect(newProject().input).toMatchObject({ kind: 'shaft', rpm: 100 });
   });
 
   it('chooses the corner relief style', () => {

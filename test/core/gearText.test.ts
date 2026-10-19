@@ -122,7 +122,7 @@ describe('parseGear', () => {
   });
 
   it('leaves an empty input when none is given', () => {
-    expect(ok('').input).toEqual({ kind: 'shaft', shaftId: '', rpm: 0 });
+    expect(ok('').input).toEqual({ kind: 'shaft', shaftId: '', rpm: 100 });
   });
 
   it('never throws on garbage', () => {

@@ -40,7 +40,7 @@ const prefersReducedMotion = () => typeof window !== 'undefined' && !!window.mat
 export function Diagram({ store }: { store: Store }) {
   const { project: p, solution: s, selection, select } = store;
   const [playing, setPlaying] = useState(() => !prefersReducedMotion());
-  const [mult, setMult] = useState(0.1);
+  const [mult, setMult] = useState(1);
   const [labels, setLabels] = useState(true);
   const groups = useRef(new Map<string, SVGGElement>());
   const time = useRef(0);
@@ -180,17 +180,24 @@ export function Diagram({ store }: { store: Store }) {
   };
   const onPointerUp = () => (drag.current = null);
 
-  // One label per shaft (compound gears share a center), plus one per rack.
+  // Shaft id and speed below each hub; each gear's id above the hub, in the ring only that gear
+  // covers (compound gears share a center, so smallest gear innermost); racks below their teeth.
+  // `dy` is in em so the lines stay apart at any zoom.
   const textLabels = useMemo(() => {
-    const out: { key: string; text: string; x: number; y: number }[] = [];
+    const out: { key: string; text: string; x: number; y: number; dy?: string; kind: 'part' | 'shaft' | 'speed' }[] = [];
     for (const sh of s.shafts) {
-      const gears = s.gears.filter((g) => g.shaftId === sh.id);
+      const gears = s.gears.filter((g) => g.shaftId === sh.id).sort((a, b) => a.pitchR - b.pitchR);
       if (!gears.length) continue;
-      const r = Math.min(...gears.map((g) => g.pitchR));
       const speed = sh.rpm === undefined ? 'not driven' : `${fmt(sh.rpm, 1)} rpm`;
-      out.push({ key: sh.id, text: `${gears.map((g) => g.id).join(' + ')}  ${speed}`, x: sh.x, y: sh.y - r * 0.5 });
+      out.push({ key: `${sh.id}:id`, text: sh.id, x: sh.x, y: sh.y, dy: '1.1em', kind: 'shaft' });
+      out.push({ key: `${sh.id}:speed`, text: speed, x: sh.x, y: sh.y, dy: '2.2em', kind: 'speed' });
+      let inner = 0;
+      for (const g of gears) {
+        out.push({ key: g.id, text: g.id, x: sh.x, y: sh.y + (inner + g.rootR) / 2, kind: 'part' });
+        inner = Math.max(inner, g.outerR);
+      }
     }
-    for (const d of parts) if (d.kind === 'rack') out.push({ key: d.id, text: d.label, x: d.labelX, y: d.labelY });
+    for (const d of parts) if (d.kind === 'rack') out.push({ key: d.id, text: d.label, x: d.labelX, y: d.labelY, kind: 'part' });
     return out;
   }, [s, parts]);
 
@@ -260,7 +267,7 @@ export function Diagram({ store }: { store: Store }) {
         </g>
         {labels &&
           textLabels.map((l) => (
-            <text key={l.key} x={l.x} y={-l.y} class="part-label" style={{ fontSize: `${Math.max(view.w, view.h) / 50}px` }}>
+            <text key={l.key} x={l.x} y={-l.y} dy={l.dy} class={`part-label ${l.kind}`} style={{ fontSize: `${Math.max(view.w, view.h) / 50}px` }}>
               {l.text}
             </text>
           ))}

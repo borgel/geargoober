@@ -88,7 +88,7 @@ export function newProject(): Project {
     pitch: { system: 'module', value: 1 },
     pressureAngleDeg: 20,
     fit: { ...DEFAULT_FIT },
-    input: { kind: 'shaft', shaftId: '', rpm: 0 },
+    input: { kind: 'shaft', shaftId: '', rpm: 100 },
     shafts: [],
     gears: [],
     racks: [],

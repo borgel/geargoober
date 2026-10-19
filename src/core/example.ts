@@ -3,7 +3,7 @@ export const EXAMPLE_GEAR = `project "Example: two-stage reduction to a rack"
 pitch module 1
 pressure_angle 20
 fit backlash 0.1 clearance 0.25 kerf 0.15 relief 0.2
-input S1 rpm 1200
+input S1 rpm 100
 
 shaft S1 name "Motor" bore dflat 5 0.5
 shaft S2 bore hex 6.35

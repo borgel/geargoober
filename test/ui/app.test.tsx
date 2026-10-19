@@ -17,6 +17,14 @@ beforeEach(() => localStorage.clear());
 afterEach(cleanup);
 
 describe('App', () => {
+  it('links to the source repository', () => {
+    render(<App />);
+    const link = screen.getByRole('link', { name: /source on github/i }) as HTMLAnchorElement;
+    expect(link.href).toBe('https://github.com/borgel/geargoober');
+    expect(link.target).toBe('_blank');
+    expect(link.rel).toContain('noopener');
+  });
+
   it('loads the example project on first run', () => {
     render(<App />);
     expect(screen.getAllByDisplayValue('G1').length).toBeGreaterThan(0);

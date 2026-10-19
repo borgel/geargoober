@@ -3,6 +3,8 @@
 A gear train designer that runs entirely in your browser — one HTML file, no
 server, no install.
 
+**Try it:** <https://borgel.github.io/geargoober> · **Source:** <https://github.com/borgel/geargoober>
+
 Define a train of spur gears and racks, set an input speed, and see the speed
 and direction of every shaft in an animated diagram. When you're happy, export
 everything you need to build it:
@@ -99,8 +101,9 @@ You only need Docker.
 
 ### Publishing to GitHub Pages
 
-`.github/workflows/pages.yml` tests, builds and publishes the app on every
-push to `main` (or on demand from the Actions tab). Enable it once under
+`.github/workflows/pages.yml` tests, builds and publishes the app to
+<https://borgel.github.io/geargoober> on every push to `main` (or on demand
+from the Actions tab). On a fork, enable it once under
 **Settings → Pages → Source: GitHub Actions**. The page is served as
 `index.html`; it's the same single file as `dist/geargoober.html`.
 

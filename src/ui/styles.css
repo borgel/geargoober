@@ -120,6 +120,19 @@ textarea {
   fill: var(--panel);
 }
 
+.source-link {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.source-link:hover,
+.source-link:focus-visible {
+  color: var(--anodize);
+  text-decoration: underline;
+}
+
 .project-title {
   margin: 0;
   font-size: 1rem;
@@ -833,6 +846,9 @@ dialog.export ul.files button {
   }
   .actions {
     order: 2;
+  }
+  .source-link {
+    margin-left: auto;
   }
   .legend {
     margin-left: 0;

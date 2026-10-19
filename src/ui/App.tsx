@@ -15,6 +15,8 @@ import { ResultsPanel } from './ResultsPanel';
 import { exampleProject, useProjectStore } from './state';
 import { TextEditor } from './TextEditor';
 
+const REPO_URL = 'https://github.com/borgel/geargoober';
+
 export function App() {
   const store = useProjectStore();
   const { project } = store;
@@ -88,6 +90,9 @@ export function App() {
             Export…
           </button>
         </nav>
+        <a class="source-link" href={REPO_URL} target="_blank" rel="noopener noreferrer" aria-label="Source on GitHub" title="Source on GitHub">
+          Source
+        </a>
       </header>
       {notice && (
         <p class="notice" role="status">

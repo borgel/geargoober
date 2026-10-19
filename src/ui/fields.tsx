@@ -4,14 +4,23 @@ import { useEffect, useState } from 'preact/hooks';
 const parse = (t: string) => (t.trim() === '' ? NaN : Number(t));
 const show = (n: number) => (Number.isNaN(n) ? '' : String(n));
 
-export function NumField(props: { value: number; onChange: (n: number) => void; label: string; unit?: string; class?: string }) {
+/** With `onClear`, an empty box is allowed and means "not set" (pass NaN as the value for that). */
+export function NumField(props: {
+  value: number;
+  onChange: (n: number) => void;
+  onClear?: () => void;
+  label: string;
+  unit?: string;
+  class?: string;
+}) {
   const [text, setText] = useState(show(props.value));
   useEffect(() => {
     if (!Object.is(parse(text), props.value)) setText(show(props.value));
     // only react to outside changes of value
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [props.value]);
-  const invalid = !Number.isFinite(parse(text));
+  const blank = text.trim() === '';
+  const invalid = !(blank && props.onClear) && !Number.isFinite(parse(text));
   const input = (
     <input
       type="text"
@@ -23,7 +32,8 @@ export function NumField(props: { value: number; onChange: (n: number) => void; 
       onInput={(e) => {
         const t = (e.target as HTMLInputElement).value;
         setText(t);
-        props.onChange(parse(t));
+        if (t.trim() === '' && props.onClear) props.onClear();
+        else props.onChange(parse(t));
       }}
     />
   );

@@ -8,6 +8,7 @@ import {
   undercutLimit,
   type ToothParams,
 } from './gearmath';
+import { MAX_VISIBLE_TICKS } from './escapement';
 import { boreRadius, type Bore, type Gear, type Project, type Rack } from './model';
 import { DEG, moduleOf } from './units';
 import { add, dist, dot, polar, rot, scale, sub, type Vec2 } from './vec';
@@ -195,6 +196,12 @@ export function solve(p: Project): Solution {
   } else {
     if (!rackById.has(input.rackId)) err(`input: unknown rack "${input.rackId}"`, input.rackId);
     if (!Number.isFinite(input.mmPerSec)) err('input speed must be a number');
+  }
+  if (input.ticksPerSec !== undefined) {
+    const ref = input.kind === 'shaft' ? input.shaftId : input.rackId;
+    if (!(Number.isFinite(input.ticksPerSec) && input.ticksPerSec > 0)) err('input ticks per second must be a positive number', ref);
+    else if (input.ticksPerSec > MAX_VISIBLE_TICKS)
+      warn(`input: ${input.ticksPerSec} ticks/s is faster than the animation can show; steps will look like smooth motion`, ref);
   }
 
   // ---- base solution ----------------------------------------------------

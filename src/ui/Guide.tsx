@@ -182,6 +182,21 @@ export function Guide({ topic, onClose }: Props) {
             same rack.
           </p>
         </section>
+
+        <section id="guide-escapement" tabIndex={-1}>
+          <h3>Escapement</h3>
+          <p>
+            An escapement lets a train move in regular steps instead of turning smoothly, like a clock's seconds hand. Set how many steps
+            (ticks) happen per second; the input speed stays the average, so each tick moves the input by rpm ÷ 60 ÷ ticks of a turn
+            (or mm/s ÷ ticks for a rack). Every other part steps at the same moment by its own ratio, shown as Step / tick under Speeds.
+          </p>
+          <ul>
+            <li>A seconds hand is 1 rpm at 1 tick/s: 6° per tick. Many clock escape wheels tick twice a second.</li>
+            <li>Meshed gears can't step on their own schedule, so the escapement belongs to the whole train. It sits on whichever shaft or rack you pick as the input.</li>
+            <li>Leave Ticks blank for smooth motion. Above 60 ticks/s the steps are faster than a screen refresh and look smooth.</li>
+            <li>The diagram's speed control slows time for everything, ticks included: at 0.1× a 1 tick/s train steps every 10 s.</li>
+          </ul>
+        </section>
       </div>
     </dialog>
   );

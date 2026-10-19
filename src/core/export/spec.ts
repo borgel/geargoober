@@ -1,4 +1,5 @@
 // Printable HTML spec sheet and a static layout SVG.
+import { mmPerTick, stepPerTick } from '../escapement';
 import { partProfile } from '../geometry/parts';
 import { transformProfile } from '../geometry/sample';
 import { profileToPath } from '../geometry/svgpath';
@@ -71,13 +72,17 @@ export function layoutSvg(p: Project, s: Solution): string {
 }
 
 export function specHtml(p: Project, s: Solution, version: string): string {
+  const ticks = p.input.ticksPerSec;
   const input =
-    p.input.kind === 'shaft' ? `${esc(p.input.shaftId)} at ${fmt(p.input.rpm)} rpm` : `${esc(p.input.rackId)} at ${fmt(p.input.mmPerSec)} mm/s`;
+    (p.input.kind === 'shaft' ? `${esc(p.input.shaftId)} at ${fmt(p.input.rpm)} rpm` : `${esc(p.input.rackId)} at ${fmt(p.input.mmPerSec)} mm/s`) +
+    (ticks !== undefined ? `, escapement at ${fmt(ticks)} ticks/s` : '');
+  const stepCell = (step: number | undefined, unit: string) => (ticks === undefined ? '' : `<td>${step === undefined ? '—' : `${fmt(step)}${unit}`}</td>`);
+  const stepHead = ticks === undefined ? '' : '<th>step/tick</th>';
   const pitch = p.pitch.system === 'module' ? `module ${fmt(p.pitch.value, 4)}` : `${fmt(p.pitch.value, 4)} DP (module ${fmt(s.module, 4)})`;
   const shaftRows = p.shafts
     .map((sh) => {
       const ss = s.shafts.find((x) => x.id === sh.id)!;
-      return `<tr><td>${esc(sh.id)}</td><td>${esc(sh.name)}</td><td>${fmt(ss.x)}</td><td>${fmt(ss.y)}</td><td>${fmt(ss.rpm)}</td><td>${ss.dir ?? '—'}</td><td>${fmt(ss.torqueRatio)}</td><td>${esc(boreText(sh.bore))}</td></tr>`;
+      return `<tr><td>${esc(sh.id)}</td><td>${esc(sh.name)}</td><td>${fmt(ss.x)}</td><td>${fmt(ss.y)}</td><td>${fmt(ss.rpm)}</td>${stepCell(ss.rpm === undefined ? undefined : stepPerTick(ss.rpm, ticks), '°')}<td>${ss.dir ?? '—'}</td><td>${fmt(ss.torqueRatio)}</td><td>${esc(boreText(sh.bore))}</td></tr>`;
     })
     .join('');
   const gearRows = p.gears
@@ -89,7 +94,7 @@ export function specHtml(p: Project, s: Solution, version: string): string {
   const rackRows = p.racks
     .map((r) => {
       const rs = s.racks.find((x) => x.id === r.id)!;
-      return `<tr><td>${esc(r.id)}</td><td>${esc(r.name)}</td><td>${r.teeth}</td><td>${fmt(rs.length)}</td><td>${fmt(r.faceWidth)}</td><td>${fmt(r.backHeight)}</td><td>${fmt(rs.origin.x)}, ${fmt(rs.origin.y)}</td><td>${fmt((rs.angle * 180) / Math.PI)}</td><td>${fmt(rs.mmPerSec)}</td></tr>`;
+      return `<tr><td>${esc(r.id)}</td><td>${esc(r.name)}</td><td>${r.teeth}</td><td>${fmt(rs.length)}</td><td>${fmt(r.faceWidth)}</td><td>${fmt(r.backHeight)}</td><td>${fmt(rs.origin.x)}, ${fmt(rs.origin.y)}</td><td>${fmt((rs.angle * 180) / Math.PI)}</td><td>${fmt(rs.mmPerSec)}</td>${stepCell(rs.mmPerSec === undefined ? undefined : mmPerTick(rs.mmPerSec, ticks), ' mm')}</tr>`;
     })
     .join('');
   const meshRows = s.meshes
@@ -145,10 +150,10 @@ ${outputRows ? `<h3>Outputs</h3><table><thead><tr><th>part</th><th>speed</th><th
 <h2>Layout</h2>
 ${layoutSvg(p, s)}
 <h2>Shafts</h2>
-<table><thead><tr><th>id</th><th>name</th><th>x</th><th>y</th><th>rpm</th><th>dir</th><th>torque ×</th><th>bore</th></tr></thead><tbody>${shaftRows}</tbody></table>
+<table><thead><tr><th>id</th><th>name</th><th>x</th><th>y</th><th>rpm</th>${stepHead}<th>dir</th><th>torque ×</th><th>bore</th></tr></thead><tbody>${shaftRows}</tbody></table>
 <h2>Gears</h2>
 <table><thead><tr><th>id</th><th>name</th><th>shaft</th><th>teeth</th><th>pitch Ø</th><th>outer Ø</th><th>root Ø</th><th>face</th><th>z</th><th>phase°</th><th>rpm</th><th>pitch speed mm/s</th></tr></thead><tbody>${gearRows}</tbody></table>
-${rackRows ? `<h2>Racks</h2><table><thead><tr><th>id</th><th>name</th><th>teeth</th><th>length</th><th>face</th><th>back</th><th>origin</th><th>angle°</th><th>mm/s</th></tr></thead><tbody>${rackRows}</tbody></table>` : ''}
+${rackRows ? `<h2>Racks</h2><table><thead><tr><th>id</th><th>name</th><th>teeth</th><th>length</th><th>face</th><th>back</th><th>origin</th><th>angle°</th><th>mm/s</th>${stepHead}</tr></thead><tbody>${rackRows}</tbody></table>` : ''}
 <h2>Meshes</h2>
 <table><thead><tr><th>a</th><th>b</th><th>center distance</th><th>ratio b/a</th><th>contact ratio</th></tr></thead><tbody>${meshRows}</tbody></table>
 <h2>Issues</h2>

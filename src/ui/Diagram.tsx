@@ -3,7 +3,7 @@ import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { fmt } from '../core/export/spec';
 import { partProfile } from '../core/geometry/parts';
 import { profileToPath } from '../core/geometry/svgpath';
-import { animationClock, rackTravelSeconds } from './animation';
+import { animationClock, rackTravelSeconds, steppedTime } from './animation';
 import type { Store } from './state';
 
 interface Drawn {
@@ -130,7 +130,8 @@ export function Diagram({ store }: { store: Store }) {
     [s],
   );
   const transformFor = (d: Drawn, elapsed: number) => {
-    const t = animationClock(elapsed, travel);
+    // An escapement steps the whole train together, so step time before any rack swing.
+    const t = animationClock(steppedTime(elapsed, p.input.ticksPerSec), travel);
     if (d.kind === 'gear') return `translate(${d.x} ${d.y}) rotate(${deg(d.angle + (d.speed ?? 0) * t)})`;
     return `translate(${d.x} ${d.y}) rotate(${deg(d.angle)}) translate(${(d.speed ?? 0) * t} 0)`;
   };
@@ -147,7 +148,7 @@ export function Diagram({ store }: { store: Store }) {
     };
     raf = requestAnimationFrame(tick);
     return () => cancelAnimationFrame(raf);
-  }, [playing, mult, parts, travel]);
+  }, [playing, mult, parts, travel, p.input.ticksPerSec]);
 
   // pan & zoom
   const drag = useRef<{ x: number; y: number; view: View } | null>(null);

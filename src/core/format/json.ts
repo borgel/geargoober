@@ -59,5 +59,6 @@ function shapeProblem(p: Project): string | undefined {
   }
   const i = p.input as unknown as Record<string, unknown> | undefined;
   if (i && !(i.kind === 'shaft' || i.kind === 'rack')) return 'input kind must be shaft or rack';
+  if (i && i.ticksPerSec !== undefined && !isNum(i.ticksPerSec)) return 'input ticksPerSec must be a number';
   return undefined;
 }

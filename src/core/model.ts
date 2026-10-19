@@ -40,9 +40,11 @@ export interface Mesh {
   offset?: number;
 }
 
-export type Input =
+/** `ticksPerSec` set means an escapement: the train moves in that many steps per second at the same average speed. */
+export type Input = (
   | { kind: 'shaft'; shaftId: string; rpm: number }
-  | { kind: 'rack'; rackId: string; mmPerSec: number };
+  | { kind: 'rack'; rackId: string; mmPerSec: number }
+) & { ticksPerSec?: number };
 
 export type ReliefStyle = 'fillet' | 'dogbone';
 

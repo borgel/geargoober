@@ -76,7 +76,9 @@ export function ProjectPanel({ store }: { store: Store }) {
               set((q) => {
                 const [kind, id] = v.split(':');
                 const prev = q.input.kind === 'shaft' ? q.input.rpm : q.input.mmPerSec;
+                const ticks = q.input.ticksPerSec;
                 q.input = kind === 'shaft' ? { kind: 'shaft', shaftId: id, rpm: prev } : { kind: 'rack', rackId: id, mmPerSec: prev };
+                if (ticks !== undefined) q.input.ticksPerSec = ticks;
               })
             }
           />
@@ -92,6 +94,18 @@ export function ProjectPanel({ store }: { store: Store }) {
             }
           />
         </div>
+      </div>
+      <div class="field">
+        <span>
+          Escapement <HelpButton topic="escapement" about="escapements" />
+        </span>
+        <NumField
+          label="Escapement ticks"
+          unit="/s"
+          value={p.input.ticksPerSec ?? NaN}
+          onChange={(n) => set((q) => (q.input.ticksPerSec = n))}
+          onClear={() => set((q) => delete q.input.ticksPerSec)}
+        />
       </div>
       <details class="fit">
         <summary>Fit allowances</summary>

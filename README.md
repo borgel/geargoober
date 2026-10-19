@@ -63,7 +63,8 @@ direction the second gear sits from the first, in degrees counter-clockwise
 from +x. Other optional bits: `name "..."` on parts, `z <mm>` to stack gears
 on a shaft, `back <mm>` for rack thickness below the teeth, and
 `offset <mm>` on a rack mesh to place a second pinion along the rack.
-`fit … relief_style dogbone` switches bore corners to dog-bone cut-outs. Ids
+`ticks <n>` on `input` makes the train step n times a second like a clock
+escapement (same average speed). `fit … relief_style dogbone` switches bore corners to dog-bone cut-outs. Ids
 use letters, digits, `_`, `.` and `-`.
 
 ### Getting it into Fusion 360

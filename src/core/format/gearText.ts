@@ -222,6 +222,10 @@ export function parseGear(text: string): ParseResult {
           if (unit === 'rpm') project.input = { kind: 'shaft', shaftId: target, rpm: c.num('rpm') };
           else if (unit === 'mmps') project.input = { kind: 'rack', rackId: target, mmPerSec: c.num('mm/s') };
           else throw new LineError(col, `expected "rpm" or "mmps", got "${unit}"`);
+          c.keys((key, kcol) => {
+            if (key === 'ticks') project.input.ticksPerSec = c.num('ticks per second');
+            else unknownKey(key, kcol);
+          });
           break;
         }
         case 'shaft': {
@@ -355,10 +359,11 @@ export function serializeGear(p: Project): string {
   out.push(
     `export kerf_dxf ${p.exportPrefs.kerfDxf ? 'on' : 'off'} kerf_step ${p.exportPrefs.kerfStep ? 'on' : 'off'}`,
   );
+  const ticks = p.input.ticksPerSec !== undefined ? ` ticks ${num(p.input.ticksPerSec)}` : '';
   if (p.input.kind === 'shaft') {
-    if (p.input.shaftId) out.push(`input ${p.input.shaftId} rpm ${num(p.input.rpm)}`);
+    if (p.input.shaftId) out.push(`input ${p.input.shaftId} rpm ${num(p.input.rpm)}${ticks}`);
   } else {
-    out.push(`input ${p.input.rackId} mmps ${num(p.input.mmPerSec)}`);
+    out.push(`input ${p.input.rackId} mmps ${num(p.input.mmPerSec)}${ticks}`);
   }
   out.push('');
   for (const s of p.shafts) out.push(`shaft ${s.id}${nameText(s.id, s.name)} ${boreText(s.bore)}`);

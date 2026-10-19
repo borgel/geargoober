@@ -164,6 +164,23 @@ describe('App', () => {
     expect(unitOf('Kerf')).toBe('mm');
   });
 
+  it('sets an escapement tick rate and shows the step per tick', () => {
+    localStorage.setItem('geargoober.project', SMALL);
+    render(<App />);
+    const ticks = screen.getByLabelText('Escapement ticks') as HTMLInputElement;
+    expect(ticks.closest('.num-wrap')?.querySelector('.unit-tag')?.textContent).toBe('/s');
+    expect(ticks.value).toBe('');
+    fireEvent.input(ticks, { target: { value: '2' } });
+    expect(localStorage.getItem('geargoober.project')).toContain('input S1 rpm 1000 ticks 2');
+    const results = screen.getByTestId('results');
+    // 1000 rpm at 2 ticks/s: 3000° per tick on S1, −1500° on S2
+    expect(results.textContent).toMatch(/step \/ tick/i);
+    expect(results.textContent).toContain('3000°');
+    expect(results.textContent).toContain('-1500°');
+    fireEvent.input(ticks, { target: { value: '' } });
+    expect(localStorage.getItem('geargoober.project')).not.toContain('ticks');
+  });
+
   it('chooses the corner relief style', () => {
     localStorage.setItem('geargoober.project', SMALL);
     render(<App />);

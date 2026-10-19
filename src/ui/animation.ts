@@ -32,3 +32,18 @@ export function animationClock(t: number, limit: number | undefined): number {
   if (phase <= 3 * limit) return 2 * limit - phase;
   return phase - 4 * limit;
 }
+
+/** Share of each tick spent moving; the rest is the escapement's hold. */
+export const SNAP_FRACTION = 0.15;
+
+/**
+ * Elapsed time → stepped time for an escapement: hold, then snap forward one tick's worth with an
+ * ease-out. Lands exactly on n / ticksPerSec after each snap, so the average speed is unchanged.
+ */
+export function steppedTime(t: number, ticksPerSec: number | undefined): number {
+  if (!ticksPerSec || !(ticksPerSec > 0)) return t;
+  const ticks = t * ticksPerSec;
+  const n = Math.floor(ticks);
+  const u = Math.min(1, (ticks - n) / SNAP_FRACTION);
+  return (n + 1 - (1 - u) * (1 - u)) / ticksPerSec;
+}

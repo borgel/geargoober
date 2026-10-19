@@ -13,7 +13,8 @@ export type GuideTopic =
   | 'face-width'
   | 'kerf'
   | 'bores'
-  | 'racks';
+  | 'racks'
+  | 'escapement';
 
 export const HelpContext = createContext<(topic: GuideTopic) => void>(() => undefined);
 

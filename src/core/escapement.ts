@@ -12,3 +12,9 @@ export function stepPerTick(rpm: number, ticksPerSec: number | undefined): numbe
 export function mmPerTick(mmPerSec: number, ticksPerSec: number | undefined): number | undefined {
   return ticksPerSec ? mmPerSec / ticksPerSec : undefined;
 }
+
+/** The input's tick rate when an escapement is active; undefined for smooth motion (unset or 0). */
+export function activeTicks(input: { ticksPerSec?: number }): number | undefined {
+  const t = input.ticksPerSec;
+  return t !== undefined && Number.isFinite(t) && t > 0 ? t : undefined;
+}

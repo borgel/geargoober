@@ -199,7 +199,7 @@ export function solve(p: Project): Solution {
   }
   if (input.ticksPerSec !== undefined) {
     const ref = input.kind === 'shaft' ? input.shaftId : input.rackId;
-    if (!(Number.isFinite(input.ticksPerSec) && input.ticksPerSec > 0)) err('input ticks per second must be a positive number', ref);
+    if (!(Number.isFinite(input.ticksPerSec) && input.ticksPerSec >= 0)) err('input ticks per second must be a positive number, or 0 for none', ref);
     else if (input.ticksPerSec > MAX_VISIBLE_TICKS)
       warn(`input: ${input.ticksPerSec} ticks/s is faster than the animation can show; steps will look like smooth motion`, ref);
   }

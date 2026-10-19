@@ -1,4 +1,4 @@
-import { mmPerTick, stepPerTick } from '../core/escapement';
+import { activeTicks, mmPerTick, stepPerTick } from '../core/escapement';
 import { fmt } from '../core/export/spec';
 import type { Store } from './state';
 
@@ -6,8 +6,8 @@ const DIR = { ccw: 'counter-clockwise', cw: 'clockwise', stopped: 'stopped' } as
 
 export function ResultsPanel({ store }: { store: Store }) {
   const { solution: s, project: p, selection, select } = store;
-  const ticks = p.input.ticksPerSec;
-  const stepping = ticks !== undefined && ticks > 0 && Number.isFinite(ticks);
+  const ticks = activeTicks(p.input);
+  const stepping = ticks !== undefined;
   const sel = (...ids: string[]) => (ids.every((id) => selection.includes(id)) ? 'selected' : '');
   return (
     <section class="readout-block results" data-testid="results">

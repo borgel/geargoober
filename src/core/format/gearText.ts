@@ -359,7 +359,8 @@ export function serializeGear(p: Project): string {
   out.push(
     `export kerf_dxf ${p.exportPrefs.kerfDxf ? 'on' : 'off'} kerf_step ${p.exportPrefs.kerfStep ? 'on' : 'off'}`,
   );
-  const ticks = p.input.ticksPerSec !== undefined ? ` ticks ${num(p.input.ticksPerSec)}` : '';
+  // ticks 0 means no escapement, so it's left out like an unset one
+  const ticks = p.input.ticksPerSec !== undefined && p.input.ticksPerSec !== 0 ? ` ticks ${num(p.input.ticksPerSec)}` : '';
   if (p.input.kind === 'shaft') {
     if (p.input.shaftId) out.push(`input ${p.input.shaftId} rpm ${num(p.input.rpm)}${ticks}`);
   } else {

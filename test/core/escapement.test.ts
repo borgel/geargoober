@@ -56,12 +56,22 @@ describe('escapement ticks', () => {
     expect(stepPerTick(10, undefined)).toBeUndefined();
   });
 
-  it('errors on a zero or negative tick rate', () => {
-    for (const t of [0, -2]) {
-      const p = parsed(CLOCK);
-      p.input.ticksPerSec = t;
-      expect(solve(p).issues.some((i) => i.severity === 'error' && /ticks/.test(i.message))).toBe(true);
-    }
+  it('errors on a negative tick rate', () => {
+    const p = parsed(CLOCK);
+    p.input.ticksPerSec = -2;
+    expect(solve(p).issues.some((i) => i.severity === 'error' && /ticks/.test(i.message))).toBe(true);
+  });
+
+  it('treats ticks 0 as no escapement', () => {
+    const p = parsed(CLOCK.replace('ticks 1', 'ticks 0'));
+    expect(p.input.ticksPerSec).toBe(0);
+    const s = solve(p);
+    expect(s.issues).toEqual([]);
+    expect(serializeGear(p)).toContain('input S1 rpm 1\n');
+    expect(serializeGear(p)).not.toContain('ticks');
+    const html = specHtml(p, s, 'test');
+    expect(html).not.toContain('ticks/s');
+    expect(html).not.toMatch(/step\/tick/i);
   });
 
   it('warns when ticks are faster than the screen can show', () => {

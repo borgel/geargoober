@@ -1,5 +1,5 @@
 // Printable HTML spec sheet and a static layout SVG.
-import { mmPerTick, stepPerTick } from '../escapement';
+import { activeTicks, mmPerTick, stepPerTick } from '../escapement';
 import { partProfile } from '../geometry/parts';
 import { transformProfile } from '../geometry/sample';
 import { profileToPath } from '../geometry/svgpath';
@@ -72,7 +72,7 @@ export function layoutSvg(p: Project, s: Solution): string {
 }
 
 export function specHtml(p: Project, s: Solution, version: string): string {
-  const ticks = p.input.ticksPerSec;
+  const ticks = activeTicks(p.input);
   const input =
     (p.input.kind === 'shaft' ? `${esc(p.input.shaftId)} at ${fmt(p.input.rpm)} rpm` : `${esc(p.input.rackId)} at ${fmt(p.input.mmPerSec)} mm/s`) +
     (ticks !== undefined ? `, escapement at ${fmt(ticks)} ticks/s` : '');

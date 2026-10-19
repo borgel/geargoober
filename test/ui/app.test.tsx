@@ -182,6 +182,19 @@ describe('App', () => {
     expect(localStorage.getItem('geargoober.project')).not.toContain('ticks');
   });
 
+  it('accepts 0 escapement ticks as smooth motion', () => {
+    localStorage.setItem('geargoober.project', SMALL.replace('rpm 1000', 'rpm 1000 ticks 2'));
+    const { container } = render(<App />);
+    const ticks = screen.getByLabelText('Escapement ticks') as HTMLInputElement;
+    fireEvent.input(ticks, { target: { value: '0' } });
+    expect(ticks.value).toBe('0');
+    expect(ticks.getAttribute('aria-invalid')).toBe('false');
+    expect(screen.getByTestId('results').textContent).not.toMatch(/step \/ tick/i);
+    expect(container.querySelectorAll('svg .escapement-mark')).toHaveLength(0);
+    expect(screen.getByText('No problems found.')).toBeTruthy();
+    expect(localStorage.getItem('geargoober.project')).not.toContain('ticks');
+  });
+
   it('labels every shaft and gear in the diagram, each gear on its own ring', () => {
     localStorage.setItem(
       'geargoober.project',

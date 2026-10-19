@@ -193,7 +193,7 @@ export function Guide({ topic, onClose }: Props) {
           <ul>
             <li>A seconds hand is 1 rpm at 1 tick/s: 6° per tick. Many clock escape wheels tick twice a second.</li>
             <li>Meshed gears can't step on their own schedule, so the escapement belongs to the whole train. It sits on whichever shaft or rack you pick as the input.</li>
-            <li>Leave Ticks blank for smooth motion. Above 60 ticks/s the steps are faster than a screen refresh and look smooth.</li>
+            <li>Leave Escapement blank, or set it to 0, for smooth motion. Above 60 ticks/s the steps are faster than a screen refresh and look smooth.</li>
             <li>The diagram's speed control slows time for everything, ticks included: at 0.1× a 1 tick/s train steps every 10 s.</li>
           </ul>
         </section>

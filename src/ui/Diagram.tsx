@@ -1,4 +1,5 @@
 // View-only animated layout. Content is drawn in math coordinates inside a scale(1,-1) group.
+import { activeTicks } from '../core/escapement';
 import { useEffect, useMemo, useRef, useState } from 'preact/hooks';
 import { fmt } from '../core/export/spec';
 import { partProfile } from '../core/geometry/parts';
@@ -35,11 +36,7 @@ interface View {
 
 const SPEEDS = [0.01, 0.1, 1];
 
-/** Valid escapement tick rate, or undefined for smooth motion. */
-const ticksOf = (p: Store['project']) => {
-  const t = p.input.ticksPerSec;
-  return t !== undefined && Number.isFinite(t) && t > 0 ? t : undefined;
-};
+const ticksOf = (p: Store['project']) => activeTicks(p.input);
 /** Escapement dial radius around a shaft: inside its smallest gear's root, about two modules. */
 const dialRadius = (gears: { rootR: number }[], module: number) => Math.min(0.55 * Math.min(...gears.map((g) => g.rootR)), 2.4 * module);
 const tickText = (t: number) => `${fmt(t, 3)} tick${t === 1 ? '' : 's'}/s`;

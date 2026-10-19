@@ -209,6 +209,19 @@ describe('App', () => {
     expect(newProject().input).toMatchObject({ kind: 'shaft', rpm: 100 });
   });
 
+  it('marks the escapement on the input shaft only', () => {
+    localStorage.setItem('geargoober.project', SMALL.replace('rpm 1000', 'rpm 1000 ticks 2'));
+    const { container } = render(<App />);
+    const marks = container.querySelectorAll('svg .escapement-mark');
+    expect(marks).toHaveLength(1);
+    expect(marks[0].getAttribute('data-part')).toBe('S1');
+    expect([...container.querySelectorAll('svg .part-label')].some((l) => l.textContent === '1000 rpm, 2 ticks/s')).toBe(true);
+    cleanup();
+    localStorage.setItem('geargoober.project', SMALL);
+    const smooth = render(<App />);
+    expect(smooth.container.querySelectorAll('svg .escapement-mark')).toHaveLength(0);
+  });
+
   it('chooses the corner relief style', () => {
     localStorage.setItem('geargoober.project', SMALL);
     render(<App />);

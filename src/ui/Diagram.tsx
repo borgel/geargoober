@@ -34,6 +34,15 @@ interface View {
 }
 
 const SPEEDS = [0.01, 0.1, 1];
+
+/** Valid escapement tick rate, or undefined for smooth motion. */
+const ticksOf = (p: Store['project']) => {
+  const t = p.input.ticksPerSec;
+  return t !== undefined && Number.isFinite(t) && t > 0 ? t : undefined;
+};
+/** Escapement dial radius around a shaft: inside its smallest gear's root, about two modules. */
+const dialRadius = (gears: { rootR: number }[], module: number) => Math.min(0.55 * Math.min(...gears.map((g) => g.rootR)), 2.4 * module);
+const tickText = (t: number) => `${fmt(t, 3)} tick${t === 1 ? '' : 's'}/s`;
 const deg = (r: number) => (r * 180) / Math.PI;
 const prefersReducedMotion = () => typeof window !== 'undefined' && !!window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 
@@ -89,7 +98,10 @@ export function Diagram({ store }: { store: Store }) {
         rackPitch: rs.pitch,
         rackLength: rs.length,
         state: v === undefined ? 'idle' : Math.abs(v) < 1e-9 ? 'stopped' : v > 0 ? 'ccw' : 'cw',
-        label: v === undefined ? rs.id : `${rs.id}  ${fmt(v, 1)} mm/s`,
+        label:
+          v === undefined
+            ? rs.id
+            : `${rs.id}  ${fmt(v, 1)} mm/s${p.input.kind === 'rack' && p.input.rackId === rs.id && ticksOf(p) ? `, ${tickText(ticksOf(p)!)}` : ''}`,
         labelX: rs.origin.x + below.x,
         labelY: rs.origin.y + below.y,
       });
@@ -188,9 +200,12 @@ export function Diagram({ store }: { store: Store }) {
     for (const sh of s.shafts) {
       const gears = s.gears.filter((g) => g.shaftId === sh.id).sort((a, b) => a.pitchR - b.pitchR);
       if (!gears.length) continue;
-      const speed = sh.rpm === undefined ? 'not driven' : `${fmt(sh.rpm, 1)} rpm`;
-      out.push({ key: `${sh.id}:id`, text: sh.id, x: sh.x, y: sh.y, dy: '1.1em', kind: 'shaft' });
-      out.push({ key: `${sh.id}:speed`, text: speed, x: sh.x, y: sh.y, dy: '2.2em', kind: 'speed' });
+      const ticks = p.input.kind === 'shaft' && p.input.shaftId === sh.id ? ticksOf(p) : undefined;
+      const speed = sh.rpm === undefined ? 'not driven' : `${fmt(sh.rpm, 1)} rpm${ticks ? `, ${tickText(ticks)}` : ''}`;
+      // start below the escapement dial when this shaft carries one
+      const below = sh.y - (ticks ? dialRadius(gears, s.module) : 0);
+      out.push({ key: `${sh.id}:id`, text: sh.id, x: sh.x, y: below, dy: '1.1em', kind: 'shaft' });
+      out.push({ key: `${sh.id}:speed`, text: speed, x: sh.x, y: below, dy: '2.2em', kind: 'speed' });
       let inner = 0;
       for (const g of gears) {
         out.push({ key: g.id, text: g.id, x: sh.x, y: sh.y + (inner + g.rootR) / 2, kind: 'part' });
@@ -199,7 +214,23 @@ export function Diagram({ store }: { store: Store }) {
     }
     for (const d of parts) if (d.kind === 'rack') out.push({ key: d.id, text: d.label, x: d.labelX, y: d.labelY, kind: 'part' });
     return out;
-  }, [s, parts]);
+  }, [s, parts, p]);
+
+  // A small clock dial around the part carrying the escapement (the input).
+  const escapement = useMemo(() => {
+    const ticks = ticksOf(p);
+    if (!ticks) return undefined;
+    if (p.input.kind === 'shaft') {
+      const id = p.input.shaftId;
+      const sh = s.shafts.find((x) => x.id === id);
+      const gears = s.gears.filter((g) => g.shaftId === id);
+      if (!sh || !gears.length) return undefined;
+      return { id, x: sh.x, y: sh.y, r: dialRadius(gears, s.module), ticks };
+    }
+    const id = p.input.rackId;
+    const rs = s.racks.find((x) => x.id === id);
+    return rs ? { id, x: rs.origin.x, y: rs.origin.y, r: 2.4 * s.module, ticks } : undefined;
+  }, [p, s]);
 
   const grid = Math.pow(10, Math.floor(Math.log10(Math.max(view.w, view.h) / 20)));
   const partners = (id: string) => p.meshes.filter((m) => m.a === id || m.b === id).map((m) => (m.a === id ? m.b : m.a));
@@ -264,6 +295,17 @@ export function Diagram({ store }: { store: Store }) {
           {s.shafts.map((sh) => (
             <circle cx={sh.x} cy={sh.y} r={Math.max(0.4, s.module * 0.35)} class="shaft-mark" />
           ))}
+          {escapement && (
+            <g class="escapement-mark" data-part={escapement.id} transform={`translate(${escapement.x} ${escapement.y})`} style={{ strokeWidth: escapement.r * 0.14 }}>
+              <title>{`Escapement: ${tickText(escapement.ticks)}`}</title>
+              <circle r={escapement.r} />
+              {Array.from({ length: 12 }, (_, i) => {
+                const a = (i * Math.PI) / 6;
+                const r0 = escapement.r * (i % 3 === 0 ? 0.55 : 0.72);
+                return <line x1={r0 * Math.cos(a)} y1={r0 * Math.sin(a)} x2={escapement.r * Math.cos(a)} y2={escapement.r * Math.sin(a)} />;
+              })}
+            </g>
+          )}
         </g>
         {labels &&
           textLabels.map((l) => (
